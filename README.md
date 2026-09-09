@@ -1,4 +1,4 @@
-# khicho_chatbot
+# Khicho-AI-Studio
 
 # 🎨 Khicho - AI Chatbot & Image Generator
 
