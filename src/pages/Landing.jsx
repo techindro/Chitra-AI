@@ -217,412 +217,232 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
         ))}
       </div>
 
-      {/* Executive Spotlight & Leadership Endorsement */}
+      {/* Founder & Leadership Spotlight - Clean, Simple & Catchy */}
       <section style={{
         position: "relative",
         zIndex: 1,
-        padding: "70px 24px 90px",
+        padding: "60px 24px 80px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
       }} className="animate-slide-up animate-delay-4">
-        {/* Section Header */}
-        <div style={{ textAlign: "center", marginBottom: "36px", maxWidth: "720px" }}>
-          <div style={{
+        {/* Simple & Catchy Header */}
+        <div style={{ textAlign: "center", marginBottom: "32px", maxWidth: "600px" }}>
+          <span style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: "8px",
-            background: "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(56, 189, 248, 0.15))",
-            border: "1px solid rgba(139, 92, 246, 0.35)",
-            padding: "6px 18px",
+            gap: "6px",
+            background: "rgba(56, 189, 248, 0.08)",
+            border: "1px solid rgba(56, 189, 248, 0.2)",
+            padding: "5px 14px",
             borderRadius: "9999px",
             fontSize: "12px",
-            fontWeight: 700,
-            color: "#c084fc",
-            letterSpacing: "1.2px",
-            textTransform: "uppercase",
-            marginBottom: "16px",
-            boxShadow: "0 4px 20px rgba(139, 92, 246, 0.2)"
+            fontWeight: 600,
+            color: "#38bdf8",
+            marginBottom: "12px"
           }}>
-            <Sparkles size={14} style={{ color: "#38bdf8" }} />
-            Executive Leadership &amp; Vision • Techindro
-          </div>
+            <Sparkles size={13} />
+            Behind Chitra AI • Techindro
+          </span>
           <h2 style={{
-            fontSize: "clamp(26px, 4vw, 38px)",
-            fontWeight: 800,
-            lineHeight: 1.25,
+            fontSize: "clamp(24px, 3.5vw, 34px)",
+            fontWeight: 700,
             color: "var(--text-primary)",
-            margin: "0 0 12px",
-            letterSpacing: "-0.8px"
+            margin: "0 0 8px",
+            letterSpacing: "-0.5px"
           }}>
-            Architecting India's Premier <span style={{
-              background: "linear-gradient(135deg, #a78bfa 0%, #38bdf8 50%, #f472b6 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent"
-            }}>Sovereign AI Engine</span>
+            Built for creators, by creators.
           </h2>
           <p style={{
-            fontSize: "15px",
+            fontSize: "14px",
             color: "var(--text-secondary)",
-            lineHeight: 1.6,
-            margin: 0
+            margin: 0,
+            lineHeight: 1.5
           }}>
-            Under the visionary leadership of <strong>Shubham Patel</strong>, Techindro is transforming high-fidelity Generative AI into an instantaneous, accessible reality for creators, builders, and global enterprises.
+            A simple mission from Techindro: make high-quality AI art fast, free, and accessible to everyone.
           </p>
         </div>
 
-        {/* Master Glassmorphic Executive Card */}
+        {/* Clean Showcase Card */}
         <div style={{
           width: "100%",
-          maxWidth: "1040px",
-          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(18, 18, 30, 0.75) 50%, rgba(10, 10, 20, 0.9) 100%)",
-          backdropFilter: "blur(30px)",
-          WebkitBackdropFilter: "blur(30px)",
-          border: "1px solid rgba(255, 255, 255, 0.12)",
-          borderRadius: "32px",
-          padding: "48px",
-          boxShadow: "0 35px 90px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+          maxWidth: "880px",
+          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(20, 20, 25, 0.6) 100%)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          borderRadius: "24px",
+          padding: "36px 40px",
+          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.35)",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "44px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: "36px",
           alignItems: "center",
-          position: "relative",
-          overflow: "hidden"
+          position: "relative"
         }}>
-          {/* Ambient Laser Beam Accents */}
-          <div style={{
-            position: "absolute",
-            top: 0,
-            left: "15%",
-            right: "15%",
-            height: "2px",
-            background: "linear-gradient(90deg, transparent, #8b5cf6, #38bdf8, transparent)",
-            boxShadow: "0 0 12px rgba(56, 189, 248, 0.8)"
-          }} />
-          <div style={{
-            position: "absolute",
-            bottom: 0,
-            left: "25%",
-            right: "25%",
-            height: "1px",
-            background: "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent)"
-          }} />
-
-          {/* Left Column: Founder Profile & Credentials */}
+          {/* Left: Founder Profile */}
           <div style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            paddingRight: "10px",
-            borderRight: "1px solid rgba(255, 255, 255, 0.08)",
-            position: "relative"
+            paddingRight: "8px",
+            borderRight: "1px solid rgba(255, 255, 255, 0.08)"
           }}>
-            {/* Founder Avatar with Multi-layer Glow & Active Beacon */}
-            <div style={{ position: "relative", marginBottom: "22px" }}>
-              <div style={{
-                position: "absolute",
-                inset: "-8px",
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, rgba(139, 92, 246, 0.7), rgba(56, 189, 248, 0.7), rgba(244, 114, 182, 0.6))",
-                opacity: 0.85,
-                filter: "blur(12px)",
-                animation: "pulse 3s infinite ease-in-out"
-              }} />
+            {/* Avatar */}
+            <div style={{ position: "relative", marginBottom: "16px" }}>
               <img
                 src="/shubham-patel.jpg"
                 alt="Shubham Patel - Founder & CEO, Techindro"
                 style={{
-                  position: "relative",
-                  width: "128px",
-                  height: "128px",
+                  width: "104px",
+                  height: "104px",
                   borderRadius: "50%",
                   objectFit: "cover",
-                  border: "3px solid rgba(255, 255, 255, 0.4)",
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.7)",
+                  border: "3px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "0 10px 25px rgba(0, 0, 0, 0.5)",
                   display: "block"
                 }}
               />
-              {/* Verified Badge */}
               <div style={{
                 position: "absolute",
-                bottom: "4px",
-                right: "4px",
-                background: "linear-gradient(135deg, #0284c7, #2563eb)",
+                bottom: "2px",
+                right: "2px",
+                background: "#0284c7",
                 borderRadius: "50%",
-                padding: "5px",
+                padding: "4px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.6)",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
                 border: "2px solid #0f172a"
-              }} title="Verified Founder & CEO">
-                <BadgeCheck size={18} style={{ color: "#ffffff" }} />
+              }} title="Verified Founder">
+                <BadgeCheck size={16} style={{ color: "#ffffff" }} />
               </div>
             </div>
 
-            {/* Founder Identity */}
+            {/* Name & Role */}
             <h3 style={{
-              fontSize: "24px",
-              fontWeight: 800,
+              fontSize: "20px",
+              fontWeight: 700,
               color: "var(--text-primary)",
-              margin: "0 0 6px",
-              letterSpacing: "-0.5px"
+              margin: "0 0 4px",
+              letterSpacing: "-0.3px"
             }}>
               Shubham Patel
             </h3>
             
-            {/* Official Title Pill */}
             <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "14px",
-              fontWeight: 700,
-              padding: "5px 16px",
-              borderRadius: "9999px",
-              background: "rgba(139, 92, 246, 0.12)",
-              border: "1px solid rgba(139, 92, 246, 0.3)",
-              color: "#c084fc",
-              margin: "0 0 16px"
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "#38bdf8",
+              marginBottom: "14px"
             }}>
-              <span>Founder &amp; CEO</span>
-              <span style={{ opacity: 0.4 }}>•</span>
-              <span style={{ color: "#38bdf8", fontWeight: 800 }}>Techindro</span>
+              Founder &amp; CEO, Techindro
             </div>
 
-            {/* Credential Tags */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "center", width: "100%" }}>
-              <span style={{
+            {/* Link to techindro.com */}
+            <a
+              href="https://techindro.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
                 fontSize: "12px",
+                fontWeight: 600,
                 color: "var(--text-secondary)",
-                background: "rgba(255, 255, 255, 0.04)",
-                border: "1px solid var(--border)",
+                textDecoration: "none",
                 padding: "6px 14px",
-                borderRadius: "9999px",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                maxWidth: "280px"
-              }}>
-                <Cpu size={14} style={{ color: "#10b981" }} />
-                AI Systems Architect &amp; Visionary
-              </span>
-
-              <span style={{
-                fontSize: "11px",
-                color: "var(--text-muted)",
-                background: "rgba(56, 189, 248, 0.05)",
-                border: "1px solid rgba(56, 189, 248, 0.2)",
-                padding: "4px 12px",
-                borderRadius: "9999px",
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px"
-              }}>
-                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981" }} />
-                Live: Engineering Techindro AI Stack
-              </span>
-            </div>
-
-            {/* Techindro Ecosystem Link */}
-            <div style={{ marginTop: "20px" }}>
-              <a
-                href="https://techindro.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "7px",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color: "#38bdf8",
-                  textDecoration: "none",
-                  padding: "6px 16px",
-                  borderRadius: "8px",
-                  background: "rgba(56, 189, 248, 0.08)",
-                  border: "1px solid rgba(56, 189, 248, 0.25)",
-                  transition: "all 0.2s ease"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(56, 189, 248, 0.18)";
-                  e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.5)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(56, 189, 248, 0.08)";
-                  e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.25)";
-                }}
-              >
-                <Globe size={13} />
-                techindro.com
-                <ExternalLink size={12} />
-              </a>
-            </div>
+                borderRadius: "8px",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                transition: "all 0.2s ease"
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "#ffffff";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "var(--text-secondary)";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+              }}
+            >
+              <Globe size={13} />
+              techindro.com
+              <ExternalLink size={11} />
+            </a>
           </div>
 
-          {/* Right Column: In-Depth Perspective, Keynote & Core Pillars */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "10px",
-                  background: "rgba(139, 92, 246, 0.15)",
-                  border: "1px solid rgba(139, 92, 246, 0.3)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                }}>
-                  <Quote size={20} style={{ color: "#a78bfa" }} />
-                </div>
-                <div>
-                  <div style={{
-                    fontSize: "12px",
-                    fontWeight: 800,
-                    textTransform: "uppercase",
-                    letterSpacing: "1.4px",
-                    color: "#a78bfa"
-                  }}>
-                    Founder Keynote &amp; Manifesto
-                  </div>
-                  <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                    Shubham Patel • Founder &amp; CEO
-                  </div>
-                </div>
-              </div>
-              <span style={{
-                fontSize: "11px",
-                color: "#38bdf8",
-                background: "rgba(56, 189, 248, 0.08)",
-                border: "1px solid rgba(56, 189, 248, 0.25)",
-                padding: "4px 10px",
-                borderRadius: "8px",
-                fontWeight: 600
+          {/* Right: Relatable Quote & Key Points */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+            {/* Simple Quote */}
+            <div style={{ position: "relative" }}>
+              <Quote size={24} style={{ color: "#8b5cf6", opacity: 0.6, marginBottom: "8px" }} />
+              <p style={{
+                fontSize: "15px",
+                lineHeight: 1.65,
+                color: "var(--text-primary)",
+                margin: 0,
+                fontWeight: 400
               }}>
-                Techindro Labs
-              </span>
+                &ldquo;We got tired of expensive subscriptions, slow queues, and complicated tools just to generate good images. At <strong>Techindro</strong>, we built <strong>Chitra AI</strong> to fix that — making AI creation instant, beautiful, and completely free for everyone.&rdquo;
+              </p>
             </div>
 
-            {/* Quotation text */}
-            <p style={{
-              fontSize: "15px",
-              lineHeight: 1.8,
-              color: "var(--text-primary)",
-              margin: 0,
-              fontWeight: 400,
-              letterSpacing: "-0.2px"
-            }}>
-              &ldquo;Generative AI must never be gated behind exorbitant paywalls, sluggish queues, or restrictive compute quotas. At <strong>Techindro</strong>, our foundational conviction is engineering sovereign, world-class compute velocity that places studio-tier creative synthesis directly into the hands of 1 Billion creators, developers, and global innovators. <strong>Chitra AI</strong> represents our pursuit of uncompromising excellence — uniting the poetic aesthetic fidelity of Midjourney, the razor-sharp typographic precision of Ideogram, and true photorealism into an instantaneous, accessible canvas.&rdquo;
-            </p>
-
-            {/* 4 Architectural Milestone Tiles */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "12px",
-              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-              paddingTop: "20px"
-            }}>
-              <div style={{
-                background: "rgba(255, 255, 255, 0.03)",
-                border: "1px solid rgba(255, 255, 255, 0.07)",
-                borderRadius: "14px",
-                padding: "12px 14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px"
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#10b981", fontSize: "13px", fontWeight: 700 }}>
-                  <Zap size={14} /> Sub-2s Synthesis
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: 1.4 }}>
-                  Zero-latency parallel turbo dispatch with no queue bottlenecks.
-                </div>
-              </div>
-
-              <div style={{
-                background: "rgba(255, 255, 255, 0.03)",
-                border: "1px solid rgba(255, 255, 255, 0.07)",
-                borderRadius: "14px",
-                padding: "12px 14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px"
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#38bdf8", fontSize: "13px", fontWeight: 700 }}>
-                  <Sparkles size={14} /> Tri-Engine Fidelity
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: 1.4 }}>
-                  Seamless synthesis across Midjourney, Ideogram &amp; Leonardo styles.
-                </div>
-              </div>
-
-              <div style={{
-                background: "rgba(255, 255, 255, 0.03)",
-                border: "1px solid rgba(255, 255, 255, 0.07)",
-                borderRadius: "14px",
-                padding: "12px 14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px"
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#c084fc", fontSize: "13px", fontWeight: 700 }}>
-                  <Rocket size={14} /> Sovereign Compute
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: 1.4 }}>
-                  Independent high-speed pipeline engineered natively by Techindro.
-                </div>
-              </div>
-
-              <div style={{
-                background: "rgba(255, 255, 255, 0.03)",
-                border: "1px solid rgba(255, 255, 255, 0.07)",
-                borderRadius: "14px",
-                padding: "12px 14px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px"
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#f59e0b", fontSize: "13px", fontWeight: 700 }}>
-                  <ShieldCheck size={14} /> Enterprise Privacy
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: 1.4 }}>
-                  Confidential AI pipeline with zero training on your proprietary prompts.
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Executive Verification Seal */}
+            {/* 3 Catchy Simple Highlights */}
             <div style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
               flexWrap: "wrap",
-              gap: "10px",
-              paddingTop: "6px"
+              gap: "8px",
+              paddingTop: "6px",
+              borderTop: "1px solid rgba(255, 255, 255, 0.08)"
             }}>
-              <div style={{
+              <span style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
-                fontSize: "11px",
-                color: "var(--text-muted)"
+                gap: "5px",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "#10b981",
+                background: "rgba(16, 185, 129, 0.08)",
+                border: "1px solid rgba(16, 185, 129, 0.2)",
+                padding: "4px 12px",
+                borderRadius: "9999px"
               }}>
-                <Award size={14} style={{ color: "#a78bfa" }} />
-                <span>Endorsed by Techindro Executive Leadership</span>
-              </div>
-              <div style={{
-                fontSize: "11px",
-                color: "var(--text-secondary)",
-                letterSpacing: "0.5px",
-                fontWeight: 600
+                <Zap size={13} /> Instant 2s Generation
+              </span>
+
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "#38bdf8",
+                background: "rgba(56, 189, 248, 0.08)",
+                border: "1px solid rgba(56, 189, 248, 0.2)",
+                padding: "4px 12px",
+                borderRadius: "9999px"
               }}>
-                Built with ❤️ for Global Creators • <span style={{ color: "#38bdf8" }}>techindro.com</span>
-              </div>
+                <Palette size={13} /> Pro Art Styles
+              </span>
+
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "#c084fc",
+                background: "rgba(192, 132, 252, 0.08)",
+                border: "1px solid rgba(192, 132, 252, 0.2)",
+                padding: "4px 12px",
+                borderRadius: "9999px"
+              }}>
+                <Check size={13} /> 100% Free Forever
+              </span>
             </div>
           </div>
         </div>
