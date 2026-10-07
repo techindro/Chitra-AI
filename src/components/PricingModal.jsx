@@ -98,26 +98,26 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "rgba(0,0,0,0.65)",
-    backdropFilter: "blur(8px)",
+    background: "rgba(0,0,0,0.72)",
+    backdropFilter: "blur(10px)",
     animation: "fadeIn 0.2s ease",
-    padding: "20px",
+    padding: "16px",
     overflowY: "auto",
   };
 
   const modalStyle = {
-    width: "min(1150px, 95vw)",
+    width: "min(1100px, 96vw)",
     background: "var(--surface)",
     border: "1px solid var(--border)",
-    borderRadius: "24px",
-    padding: "40px 32px 32px",
+    borderRadius: "20px",
+    padding: "24px 24px 18px",
     position: "relative",
     boxShadow: "var(--shadow-xl)",
     animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-    maxHeight: "90vh",
+    maxHeight: "94vh",
     display: "flex",
     flexDirection: "column",
-    overflow: "hidden",
+    overflowY: "auto",
   };
 
   return (
@@ -128,19 +128,20 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
           onClick={onClose}
           style={{
             position: "absolute",
-            top: "20px",
-            right: "20px",
+            top: "16px",
+            right: "16px",
             background: "var(--bg-secondary)",
             border: "1px solid var(--border)",
             color: "var(--text-muted)",
-            width: "36px",
-            height: "36px",
+            width: "32px",
+            height: "32px",
             borderRadius: "50%",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             transition: "all 0.2s",
+            zIndex: 10,
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = "var(--text-primary)";
@@ -151,35 +152,37 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
             e.currentTarget.style.borderColor = "var(--border)";
           }}
         >
-          <X size={18} />
+          <X size={16} />
         </button>
 
         {/* Modal Header */}
-        <div style={{ textAlign: "center", marginBottom: "28px" }}>
+        <div style={{ textAlign: "center", marginBottom: "14px", flexShrink: 0 }}>
           <span style={{
-            fontSize: "12px",
+            fontSize: "11px",
             textTransform: "uppercase",
-            letterSpacing: "2px",
+            letterSpacing: "1.5px",
             color: "#8b5cf6",
             fontWeight: 700,
-            background: "rgba(139, 92, 246, 0.08)",
-            padding: "4px 12px",
+            background: "rgba(139, 92, 246, 0.1)",
+            padding: "3px 10px",
             borderRadius: "9999px",
+            display: "inline-block",
           }}>
             Pricing Plans
           </span>
           <h2 style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(24px, 3.5vw, 36px)",
+            fontSize: "clamp(20px, 2.8vw, 28px)",
             fontWeight: 400,
             color: "var(--text-primary)",
-            marginTop: "12px",
-            marginBottom: "8px",
+            marginTop: "6px",
+            marginBottom: "4px",
+            lineHeight: 1.2,
           }}>
             Choose your creative power
           </h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: "14px", maxWidth: "550px", margin: "0 auto" }}>
-            Unlock ultra-high quality generations powered by **Ideogram v4** with advanced typography and lighting.
+          <p style={{ color: "var(--text-secondary)", fontSize: "13px", maxWidth: "560px", margin: "0 auto", lineHeight: 1.4 }}>
+            Unlock ultra-high quality generations powered by <strong>Ideogram v4</strong> & <strong>Turbo AI</strong>.
           </p>
         </div>
 
@@ -188,27 +191,28 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          gap: "24px",
-          marginBottom: "32px",
+          gap: "14px",
+          marginBottom: "16px",
           flexWrap: "wrap",
+          flexShrink: 0,
         }}>
           {/* Billing Cycle Toggle */}
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: "12px",
+            gap: "4px",
             background: "var(--bg-secondary)",
-            padding: "4px",
+            padding: "3px",
             borderRadius: "9999px",
             border: "1px solid var(--border)",
           }}>
             <button
               onClick={() => setBillingCycle("monthly")}
               style={{
-                padding: "6px 16px",
+                padding: "5px 14px",
                 border: "none",
                 borderRadius: "9999px",
-                fontSize: "13px",
+                fontSize: "12px",
                 fontWeight: 600,
                 cursor: "pointer",
                 background: billingCycle === "monthly" ? "var(--surface)" : "transparent",
@@ -222,10 +226,10 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
             <button
               onClick={() => setBillingCycle("yearly")}
               style={{
-                padding: "6px 16px",
+                padding: "5px 14px",
                 border: "none",
                 borderRadius: "9999px",
-                fontSize: "13px",
+                fontSize: "12px",
                 fontWeight: 600,
                 cursor: "pointer",
                 position: "relative",
@@ -238,17 +242,17 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
               Yearly
               <span style={{
                 position: "absolute",
-                top: "-10px",
-                right: "-10px",
+                top: "-8px",
+                right: "-6px",
                 background: "linear-gradient(90deg, #10b981, #059669)",
                 color: "white",
                 fontSize: "9px",
                 fontWeight: 700,
-                padding: "2px 6px",
+                padding: "1px 5px",
                 borderRadius: "9999px",
                 boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
               }}>
-                Save 20%
+                -20%
               </span>
             </button>
           </div>
@@ -257,19 +261,19 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "4px",
             background: "var(--bg-secondary)",
-            padding: "4px",
+            padding: "3px",
             borderRadius: "9999px",
             border: "1px solid var(--border)",
           }}>
             <button
               onClick={() => setCurrency("INR")}
               style={{
-                padding: "6px 12px",
+                padding: "5px 10px",
                 border: "none",
                 borderRadius: "9999px",
-                fontSize: "12px",
+                fontSize: "11px",
                 fontWeight: 600,
                 cursor: "pointer",
                 background: currency === "INR" ? "var(--surface)" : "transparent",
@@ -282,10 +286,10 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
             <button
               onClick={() => setCurrency("USD")}
               style={{
-                padding: "6px 12px",
+                padding: "5px 10px",
                 border: "none",
                 borderRadius: "9999px",
-                fontSize: "12px",
+                fontSize: "11px",
                 fontWeight: 600,
                 cursor: "pointer",
                 background: currency === "USD" ? "var(--surface)" : "transparent",
@@ -301,15 +305,12 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
         {/* Plan Cards Container */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-          gap: "16px",
-          overflowY: "auto",
-          padding: "8px",
-          flex: 1,
-        }} className="hide-scrollbar">
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "14px",
+          alignItems: "stretch",
+        }}>
           {plans.map((plan) => {
             const isHovered = hoveredCard === plan.name;
-            const priceVal = billingCycle === "monthly" ? plan.price.monthly : plan.price.yearly;
             const isCurrent = currentTier === plan.name;
 
             return (
@@ -324,13 +325,13 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
                     : isCurrent
                       ? "1px solid var(--text-primary)"
                       : "1px solid var(--border)",
-                  borderRadius: "20px",
-                  padding: "24px 20px",
+                  borderRadius: "16px",
+                  padding: "16px 16px 14px",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
                   transition: "all 0.2s ease-in-out",
-                  transform: isHovered ? "translateY(-4px)" : "translateY(0)",
+                  transform: isHovered ? "translateY(-3px)" : "translateY(0)",
                   position: "relative",
                   boxShadow: isHovered ? "var(--shadow-md)" : "none",
                 }}
@@ -339,35 +340,36 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
                 {plan.badge && (
                   <span style={{
                     position: "absolute",
-                    top: "-10px",
-                    left: "20px",
+                    top: "-9px",
+                    left: "14px",
                     background: plan.color,
                     color: "white",
-                    fontSize: "10px",
+                    fontSize: "9px",
                     fontWeight: 700,
                     textTransform: "uppercase",
-                    padding: "3px 10px",
+                    padding: "2px 8px",
                     borderRadius: "9999px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                    letterSpacing: "0.5px",
                   }}>
                     {plan.badge}
                   </span>
                 )}
 
-                {/* Header Section */}
+                {/* Top Section */}
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", justifyStyle: "space-between", marginBottom: "14px" }}>
-                    <h3 style={{ fontSize: "18px", fontWeight: 600, color: "var(--text-primary)" }}>{plan.name}</h3>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", marginTop: "2px" }}>
+                    <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-primary)" }}>{plan.name}</h3>
                     {plan.icon}
                   </div>
                   
-                  <p style={{ color: "var(--text-secondary)", fontSize: "12px", minHeight: "36px", marginBottom: "16px", lineHeight: 1.4 }}>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "11px", marginBottom: "10px", lineHeight: 1.35, minHeight: "28px" }}>
                     {plan.desc}
                   </p>
 
-                  <div style={{ marginBottom: "2px" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "4px", marginBottom: "2px" }}>
                     <span style={{
-                      fontSize: "28px",
+                      fontSize: "24px",
                       fontWeight: 700,
                       fontFamily: "var(--font-display)",
                       color: "var(--text-primary)"
@@ -377,42 +379,43 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
                         : formatPrice(plan.price.monthly)
                       }
                     </span>
-                    <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>
-                      {plan.price.monthly === 0 ? "" : billingCycle === "yearly" ? "/ year" : "/ month"}
+                    <span style={{ color: "var(--text-muted)", fontSize: "11px" }}>
+                      {plan.price.monthly === 0 ? "" : billingCycle === "yearly" ? "/ yr" : "/ mo"}
                     </span>
                   </div>
 
                   {/* Monthly equivalence text for Yearly plans */}
                   {billingCycle === "yearly" && plan.price.yearly !== 0 ? (
-                    <div style={{ color: "#10b981", fontSize: "11px", fontWeight: 600, marginBottom: "14px" }}>
-                      Equivalent to {getMonthlyRate(plan.price.yearly)}
+                    <div style={{ color: "#10b981", fontSize: "10px", fontWeight: 600, marginBottom: "8px" }}>
+                      ≈ {getMonthlyRate(plan.price.yearly)}
                     </div>
                   ) : (
-                    <div style={{ height: "14px", marginBottom: "14px" }} />
+                    <div style={{ height: "6px", marginBottom: "8px" }} />
                   )}
 
                   {/* Model Engine Tag */}
                   <div style={{
-                    fontSize: "11px",
+                    fontSize: "10px",
                     fontWeight: 600,
                     color: plan.price.monthly === 0 ? "var(--text-muted)" : plan.color,
-                    background: plan.price.monthly === 0 ? "rgba(255,255,255,0.03)" : `rgba(${plan.name === "Starter" ? "59,130,246" : plan.name === "Pro" ? "139,92,246" : "239,68,68"}, 0.08)`,
-                    padding: "4px 8px",
+                    background: plan.price.monthly === 0 ? "rgba(255,255,255,0.03)" : `rgba(255, 255, 255, 0.05)`,
+                    border: `1px solid ${plan.price.monthly === 0 ? "var(--border)" : "rgba(255,255,255,0.08)"}`,
+                    padding: "3px 7px",
                     borderRadius: "6px",
                     display: "inline-block",
-                    marginBottom: "16px",
+                    marginBottom: "10px",
                   }}>
                     Engine: {plan.engine}
                   </div>
 
                   {/* Divider */}
-                  <div style={{ height: "1px", background: "var(--border)", marginBottom: "18px" }} />
+                  <div style={{ height: "1px", background: "var(--border)", marginBottom: "10px" }} />
 
                   {/* Features List */}
-                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
                     {plan.features.map((feature, idx) => (
-                      <li key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.4 }}>
-                        <Check size={14} style={{ color: plan.price.monthly === 0 ? "var(--text-muted)" : "#10b981", marginTop: "2px", flexShrink: 0 }} />
+                      <li key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "6px", fontSize: "11px", color: "var(--text-secondary)", lineHeight: 1.35 }}>
+                        <Check size={13} style={{ color: plan.price.monthly === 0 ? "var(--text-muted)" : "#10b981", marginTop: "1px", flexShrink: 0 }} />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -425,11 +428,11 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
                   disabled={plan.disabled}
                   style={{
                     width: "100%",
-                    marginTop: "24px",
-                    padding: "10px",
-                    borderRadius: "10px",
+                    marginTop: "14px",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
                     fontWeight: 600,
-                    fontSize: "13px",
+                    fontSize: "12px",
                     cursor: plan.disabled ? "default" : "pointer",
                     background: isCurrent
                       ? "rgba(255,255,255,0.05)"
@@ -440,9 +443,9 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
                       ? "var(--text-muted)"
                       : plan.price.monthly === 0
                         ? "var(--text-primary)"
-                        : "white",
+                        : "#0f172a",
                     border: isCurrent ? "1px solid var(--border)" : "1px solid transparent",
-                    transition: "opacity 0.2s",
+                    transition: "opacity 0.2s, transform 0.1s",
                   }}
                   onMouseEnter={(e) => {
                     if (!plan.disabled) e.currentTarget.style.opacity = 0.9;
@@ -461,21 +464,22 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
         {/* Note / Payment Trust Badges */}
         <div style={{
           textAlign: "center",
-          marginTop: "20px",
+          marginTop: "14px",
           color: "var(--text-muted)",
-          fontSize: "12px",
+          fontSize: "11px",
           borderTop: "1px solid var(--border)",
-          paddingTop: "16px",
+          paddingTop: "10px",
           display: "flex",
           flexDirection: "column",
-          gap: "8px",
-          alignItems: "center"
+          gap: "4px",
+          alignItems: "center",
+          flexShrink: 0,
         }}>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
             <span style={{ color: "var(--text-secondary)", fontWeight: 600 }}>Supported Payments:</span>
             <span>UPI • Google Pay • PhonePe • Paytm • Cards • NetBanking</span>
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+          <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
             🔒 256-Bit SSL Encrypted • Cancel Anytime • 7-Day Money Back Guarantee • Taxes included
           </div>
         </div>
