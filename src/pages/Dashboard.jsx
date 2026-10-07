@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Logo from "@components/logo";
 import ImageCard from "@components/imagecard";
-import { STYLES, SUGGESTIONS } from "../constants";
-import { createImageJob, validatePrompt, generateImage, generateImageToImage, buildPrompt, downloadImage } from "@utils/imageGen";
+import { STYLES, SUGGESTIONS, EXPLORE_ITEMS } from "../constants";
+import { createImageJob, validatePrompt, generateImage, generateImageToImage, buildPrompt, downloadImage, buildImageUrl } from "@utils/imageGen";
+import { upscaleImageTo4K, removeImageBackground } from "@utils/imageProcess";
 import {
   Home, Compass, Sparkles, Archive, ImagePlus, X, LogOut, Sun, Moon, Settings2, CreditCard,
   Film, Play, Pause, RefreshCw, Volume2, Download, Copy, Dices, Wand2, Square, Tv, Smartphone, Image,
-  Sprout, Palette, Camera, Zap, Cpu, Brush, Box, Gamepad2, Wand, Lightbulb, Globe
+  Sprout, Palette, Camera, Zap, Cpu, Brush, Box, Gamepad2, Wand, Lightbulb, Globe,
+  Heart, Search, Trash2, CheckCircle2, Sliders, Scissors, Maximize2, Share2, History, Lock, Unlock, Check,
+  Type, Aperture, SunMedium, Layers, SlidersHorizontal
 } from "lucide-react";
 
 const renderStyleIcon = (lucideName) => {
@@ -212,7 +215,14 @@ const getVoiceForCharacter = (charType, voices) => {
 };
 
 export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, onPricingClick, onLogout, theme, toggleTheme }) {
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(() => {
+    const init = sessionStorage.getItem("chitra_initial_prompt");
+    if (init) {
+      sessionStorage.removeItem("chitra_initial_prompt");
+      return init;
+    }
+    return "";
+  });
   const [style, setStyle] = useState("realistic");
   const [count, setCount] = useState(4);
   const [loading, setLoading] = useState(false);
@@ -220,7 +230,47 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
   const [showSettings, setShowSettings] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [modalCopied, setModalCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState("create"); // "create" | "video"
+  const [activeTab, setActiveTab] = useState("create"); // "create" | "video" | "explore" | "archive"
+
+  // SaaS Silicon Valley States
+  const [credits, setCredits] = useState(() => {
+    const val = localStorage.getItem("chitra_credits") || localStorage.getItem("khicho_credits");
+    return val !== null ? Number(val) : 50;
+  });
+  const [enhancingPrompt, setEnhancingPrompt] = useState(false);
+  const [remixToast, setRemixToast] = useState("");
+  const [negativePrompt, setNegativePrompt] = useState("");
+  const [exploreSearch, setExploreSearch] = useState("");
+  const [selectedExploreCategory, setSelectedExploreCategory] = useState("all");
+  const [archiveSearch, setArchiveSearch] = useState("");
+
+  // Creative AI Power Tools (4K Upscale, Background Remover, Seed Lock, Prompt History)
+  const [upscaling, setUpscaling] = useState(false);
+  const [upscaledUrl, setUpscaledUrl] = useState(null);
+  const [removingBg, setRemovingBg] = useState(false);
+  const [bgRemovedUrl, setBgRemovedUrl] = useState(null);
+  const [lockedSeed, setLockedSeed] = useState(null);
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
+  const [promptHistory, setPromptHistory] = useState(() => {
+    try {
+      const stored = localStorage.getItem("chitra_prompt_history");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [historySearch, setHistorySearch] = useState("");
+
+  // Tri-Engine Parameters: Midjourney, Leonardo.ai & Ideogram
+  const [engineTab, setEngineTab] = useState("presets"); // "presets" | "midjourney" | "leonardo" | "ideogram"
+  const [stylizeLevel, setStylizeLevel] = useState(250); // Midjourney: 50, 250, 750, 1000
+  const [chaosLevel, setChaosLevel] = useState(0); // Midjourney: 0, 25, 50
+  const [alchemyMode, setAlchemyMode] = useState(false); // Leonardo.ai: PhotoReal Alchemy toggle
+  const [cameraLens, setCameraLens] = useState("none"); // Leonardo.ai: Optics Lens preset
+  const [lightingRig, setLightingRig] = useState("none"); // Leonardo.ai: Lighting Rig preset
+  const [ideogramText, setIdeogramText] = useState(""); // Ideogram: Text / typography
+  const [ideogramTypeStyle, setIdeogramTypeStyle] = useState("3D Chrome & Glass"); // Ideogram: typography style
+  const [colorPalette, setColorPalette] = useState("none"); // Ideogram: Harmonic color palette
 
   // Video Studio States
   const [videoTopic, setVideoTopic] = useState("");
@@ -343,6 +393,59 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
     setTimeout(() => setModalCopied(false), 1500);
   };
 
+  const handleUpscale4K = async () => {
+    if (!selectedImage || upscaling) return;
+    setUpscaling(true);
+    try {
+      const res = await upscaleImageTo4K(selectedImage.url, 2);
+      setUpscaledUrl(res.url);
+      setRemixToast("✨ Upscaled to 4K Ultra-HD!");
+      setTimeout(() => setRemixToast(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setRemixToast("⚠️ Upscale note: " + (err.message || "Could not process image"));
+      setTimeout(() => setRemixToast(""), 3000);
+    } finally {
+      setUpscaling(false);
+    }
+  };
+
+  const handleRemoveBg = async () => {
+    if (!selectedImage || removingBg) return;
+    setRemovingBg(true);
+    try {
+      const res = await removeImageBackground(selectedImage.url);
+      setBgRemovedUrl(res.url);
+      setRemixToast("✂️ Background removed successfully!");
+      setTimeout(() => setRemixToast(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setRemixToast("⚠️ Cutout note: " + (err.message || "Could not process cutout"));
+      setTimeout(() => setRemixToast(""), 3000);
+    } finally {
+      setRemovingBg(false);
+    }
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!selectedImage) return;
+    const text = `Look at this artwork I created with Chitra AI!\n"${selectedImage.prompt}"\n${selectedImage.url}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const handleShareTwitter = () => {
+    if (!selectedImage) return;
+    const text = `Created with @ChitraAI: "${selectedImage.prompt}"\n\n${selectedImage.url}`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const handleCopyShareLink = () => {
+    if (!selectedImage) return;
+    navigator.clipboard.writeText(selectedImage.url);
+    setRemixToast("🔗 Direct image link copied to clipboard!");
+    setTimeout(() => setRemixToast(""), 2500);
+  };
+
   const handleEnhancePrompt = () => {
     if (!prompt.trim()) return;
     const styleEnhancers = ENHANCERS[style] || [
@@ -357,9 +460,45 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
     setPrompt((p) => `${p.trim()}${separator}${modifier}`);
   };
 
+  const handleGeminiEnhancePrompt = async () => {
+    if (!prompt.trim() || enhancingPrompt) return;
+    setEnhancingPrompt(true);
+    setError("");
+    try {
+      const res = await fetch("/api/enhance-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt.trim() })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.enhancedPrompt && data.enhancedPrompt !== prompt.trim()) {
+          setPrompt(data.enhancedPrompt);
+          setRemixToast("✨ Enhanced with Gemini Flash AI!");
+          setTimeout(() => setRemixToast(""), 3000);
+          return;
+        }
+      }
+      handleEnhancePrompt();
+    } catch {
+      handleEnhancePrompt();
+    } finally {
+      setEnhancingPrompt(false);
+    }
+  };
+
+  const handleRemix = (item) => {
+    setPrompt(item.prompt);
+    if (item.style) setStyle(item.style);
+    if (item.aspectRatio) setAspectRatio(item.aspectRatio);
+    setActiveTab("create");
+    setRemixToast(`✨ Loaded prompt: "${item.title}"`);
+    setTimeout(() => setRemixToast(""), 3000);
+  };
+
   const [images, setImages] = useState(() => {
     try {
-      const saved = localStorage.getItem("khicho_history");
+      const saved = localStorage.getItem("chitra_history") || localStorage.getItem("khicho_history");
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -372,7 +511,7 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
   useEffect(() => {
     try {
       const successfulImages = images.filter((img) => img.status === "done");
-      localStorage.setItem("khicho_history", JSON.stringify(successfulImages.slice(0, 50)));
+      localStorage.setItem("chitra_history", JSON.stringify(successfulImages.slice(0, 50)));
     } catch (err) {
       console.error("Failed to save history:", err);
     }
@@ -383,50 +522,112 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
     if (!valid && !uploadedImage) return setError(validError);
     if (loading) return;
 
+    if (credits <= 0) {
+      setError("You have reached your 50 free creation credits. Upgrade to keep creating!");
+      if (onPricingClick) onPricingClick();
+      return;
+    }
+
     setError("");
     setLoading(true);
     const selectedStyle = STYLES.find((s) => s.id === style);
-    const fullPrompt = buildPrompt(prompt.trim() || "stylize this image", selectedStyle);
+    let promptToBuild = prompt.trim() || "stylize this image";
+
+    // 1. Ideogram 2.0: Typography & Text Rendering
+    if (ideogramText.trim()) {
+      promptToBuild += `, featuring prominent sharp typography displaying "${ideogramText.trim()}" in ${ideogramTypeStyle} style`;
+    }
+
+    // 2. Ideogram 2.0: Harmonic Color Palette
+    if (colorPalette && colorPalette !== "none") {
+      promptToBuild += `, ${colorPalette} color grading`;
+    }
+
+    // 3. Leonardo.ai: Optics & Lens
+    if (cameraLens && cameraLens !== "none") {
+      promptToBuild += `, shot on ${cameraLens}`;
+    }
+
+    // 4. Leonardo.ai: Studio Lighting Rig
+    if (lightingRig && lightingRig !== "none") {
+      promptToBuild += `, ${lightingRig}`;
+    }
+
+    // 5. Leonardo.ai: PhotoReal Alchemy Mode
+    if (alchemyMode) {
+      promptToBuild += `, Leonardo Alchemy photoreal contrast, 8k raytraced global illumination, hyper-detailed skin pores and texture`;
+    }
+
+    // 6. Midjourney v6: Stylize & Chaos Parameters
+    if (stylizeLevel && stylizeLevel !== 250) {
+      promptToBuild += `, --stylize ${stylizeLevel}`;
+    }
+    if (chaosLevel && chaosLevel > 0) {
+      promptToBuild += `, --chaos ${chaosLevel}`;
+    }
+
+    // 7. Negative Prompting
+    if (negativePrompt.trim()) {
+      promptToBuild += `, avoid: ${negativePrompt.trim()}`;
+    }
+    const fullPrompt = buildPrompt(promptToBuild, selectedStyle);
 
     const placeholders = Array.from({ length: count }, (_, i) =>
       createImageJob(prompt.trim(), selectedStyle, i, aspectRatio)
     );
     setImages((prev) => [...placeholders, ...prev]);
 
-    // Generate one at a time to avoid Pollinations rate limits
-    for (let i = 0; i < placeholders.length; i++) {
-      const ph = placeholders[i];
-      if (i > 0) await new Promise((r) => setTimeout(r, 1500));
-
-      try {
-        let url;
-        if (uploadedImage) {
-          url = await generateImageToImage(uploadedImage, fullPrompt, hfToken, aspectRatio);
-        } else {
-          url = await generateImage(fullPrompt, i, currentTier, ideogramApiKey, aspectRatio);
-        }
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === ph.id ? { ...img, url, status: "done" } : img
-          )
-        );
-      } catch (err) {
-        setImages((prev) =>
-          prev.map((img) =>
-            img.id === ph.id ? { ...img, status: "error", error: err.message } : img
-          )
-        );
-      }
+    // Save prompt to searchable history
+    if (prompt.trim()) {
+      setPromptHistory((prev) => {
+        const filtered = prev.filter((p) => p.text !== prompt.trim());
+        const updated = [{ text: prompt.trim(), time: new Date().toISOString(), style }, ...filtered].slice(0, 50);
+        localStorage.setItem("chitra_prompt_history", JSON.stringify(updated));
+        return updated;
+      });
     }
+
+    // Deduct credits
+    setCredits((prevCredits) => {
+      const next = Math.max(0, prevCredits - count);
+      localStorage.setItem("chitra_credits", next.toString());
+      return next;
+    });
+
+    // Generate images swiftly in parallel with lightweight stagger
+    await Promise.allSettled(
+      placeholders.map(async (ph, i) => {
+        if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
+        try {
+          let url;
+          if (uploadedImage) {
+            url = await generateImageToImage(uploadedImage, fullPrompt, hfToken, aspectRatio);
+          } else {
+            url = await generateImage(fullPrompt, i, currentTier, ideogramApiKey, aspectRatio, lockedSeed);
+          }
+          setImages((prev) =>
+            prev.map((img) =>
+              img.id === ph.id ? { ...img, url, status: "done" } : img
+            )
+          );
+        } catch (err) {
+          setImages((prev) =>
+            prev.map((img) =>
+              img.id === ph.id ? { ...img, status: "error", error: err.message || "Failed to generate image" } : img
+            )
+          );
+        }
+      })
+    );
     setLoading(false);
-  }, [prompt, style, count, loading, hfToken, uploadedImage, aspectRatio]);
+  }, [prompt, style, count, loading, hfToken, uploadedImage, aspectRatio, credits, negativePrompt, onPricingClick, lockedSeed, stylizeLevel, chaosLevel, alchemyMode, cameraLens, lightingRig, ideogramText, ideogramTypeStyle, colorPalette]);
 
   const handleDownloadAll = useCallback(async () => {
     const doneImages = images.filter((img) => img.status === "done");
     if (doneImages.length === 0) return;
     for (const img of doneImages) {
       await new Promise((r) => setTimeout(r, 400));
-      await downloadImage(img.url, `khicho-${img.id}.jpg`);
+      await downloadImage(img.url, `chitra-${img.id}.jpg`);
     }
   }, [images]);
 
@@ -627,7 +828,7 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if ((e.key === "Enter" && !e.shiftKey) || ((e.ctrlKey || e.metaKey) && e.key === "Enter")) {
       e.preventDefault();
       generate();
     }
@@ -635,6 +836,13 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
 
   return (
     <div className="mj-app">
+      {/* Floating Notification Banner */}
+      {remixToast && (
+        <div className="mj-remix-banner">
+          {remixToast}
+        </div>
+      )}
+
       {/* Sidebar */}
       <aside className="mj-sidebar">
         <Logo size="sm" showMark />
@@ -647,14 +855,26 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
           <Sparkles size={20} />
         </button>
         <button
+          className={`mj-sidebar-btn ${activeTab === "explore" ? "active" : ""}`}
+          onClick={() => { stopPlayback(); setActiveTab("explore"); }}
+          title="Explore Community"
+        >
+          <Compass size={20} />
+        </button>
+        <button
+          className={`mj-sidebar-btn ${activeTab === "archive" ? "active" : ""}`}
+          onClick={() => { stopPlayback(); setActiveTab("archive"); }}
+          title="My Archive"
+        >
+          <Archive size={20} />
+        </button>
+        <button
           className={`mj-sidebar-btn ${activeTab === "video" ? "active" : ""}`}
           onClick={() => setActiveTab("video")}
           title="Video Studio"
         >
           <Film size={20} />
         </button>
-        <button className="mj-sidebar-btn" title="Explore"><Compass size={20} /></button>
-        <button className="mj-sidebar-btn" title="Archive"><Archive size={20} /></button>
         <button className="mj-sidebar-btn" onClick={onPricingClick} title="Subscription"><CreditCard size={20} /></button>
         <div className="mj-sidebar-spacer" />
         <button className="mj-sidebar-btn" onClick={toggleTheme} title="Toggle theme">
@@ -673,6 +893,20 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
           title="Create Art"
         >
           <Sparkles size={20} />
+        </button>
+        <button
+          className={`mj-mobile-nav-btn ${activeTab === "explore" ? "active" : ""}`}
+          onClick={() => { stopPlayback(); setActiveTab("explore"); }}
+          title="Explore"
+        >
+          <Compass size={20} />
+        </button>
+        <button
+          className={`mj-mobile-nav-btn ${activeTab === "archive" ? "active" : ""}`}
+          onClick={() => { stopPlayback(); setActiveTab("archive"); }}
+          title="Archive"
+        >
+          <Archive size={20} />
         </button>
         <button
           className={`mj-mobile-nav-btn ${activeTab === "video" ? "active" : ""}`}
@@ -694,7 +928,7 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
 
       {/* Main */}
       <main className="mj-main">
-        {activeTab === "create" ? (
+        {activeTab === "create" && (
           <>
             <header className="mj-topbar">
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -732,6 +966,14 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
                 )}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  className="mj-credits-badge"
+                  onClick={onPricingClick}
+                  title="Your available creation tokens. Click to refill."
+                >
+                  <Zap size={13} fill="#fbbf24" color="#fbbf24" />
+                  <span>{credits} Credits</span>
+                </div>
                 <div
                   onClick={onPricingClick}
                   style={{
@@ -790,8 +1032,254 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
               )}
             </div>
           </>
-        ) : (
-          /* Video Studio Panel JSX */
+        )}
+
+        {/* Explore Community Tab */}
+        {activeTab === "explore" && (
+          <div className="mj-explore-container animate-slide-up">
+            <header className="mj-explore-header">
+              <div>
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 400, color: "var(--text-primary)", textAlign: "left" }}>
+                  Community Showcase 🌍
+                </h2>
+                <p style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>
+                  Trending prompts generated by top creators. Click Remix to instantly load any prompt and style.
+                </p>
+              </div>
+
+              {/* Search Bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "9999px", padding: "6px 14px", width: "min(320px, 100%)" }}>
+                <Search size={14} color="var(--text-muted)" />
+                <input
+                  type="text"
+                  placeholder="Search styles, themes, keywords..."
+                  value={exploreSearch}
+                  onChange={(e) => setExploreSearch(e.target.value)}
+                  style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)", fontSize: "12px", width: "100%" }}
+                />
+                {exploreSearch && (
+                  <button onClick={() => setExploreSearch("")} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer" }}><X size={12} /></button>
+                )}
+              </div>
+            </header>
+
+            {/* Category Filter Pills */}
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "4px" }} className="hide-scrollbar">
+              {["all", "cyberpunk", "ghibli", "realistic", "anime", "fantasy", "3d", "watercolor", "oilpaint"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedExploreCategory(cat)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "9999px",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    textTransform: "capitalize",
+                    border: `1px solid ${selectedExploreCategory === cat ? "var(--accent)" : "var(--border)"}`,
+                    background: selectedExploreCategory === cat ? "var(--accent-bg)" : "var(--surface)",
+                    color: selectedExploreCategory === cat ? "var(--text-primary)" : "var(--text-secondary)",
+                    transition: "all 0.15s ease"
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Explore Grid */}
+            <div className="mj-explore-grid">
+              {EXPLORE_ITEMS
+                .filter((item) => {
+                  const matchCat = selectedExploreCategory === "all" || item.style === selectedExploreCategory;
+                  const matchSearch = !exploreSearch || item.title.toLowerCase().includes(exploreSearch.toLowerCase()) || item.prompt.toLowerCase().includes(exploreSearch.toLowerCase());
+                  return matchCat && matchSearch;
+                })
+                .map((item) => (
+                  <div key={item.id} className="mj-explore-card">
+                    <div className="mj-explore-thumb-wrap">
+                      <img
+                        src={item.img || buildImageUrl(item.prompt, item.seed, 600, 600)}
+                        alt={item.title}
+                        loading="lazy"
+                        onError={(e) => {
+                          if (item.img && e.currentTarget.src !== item.img) {
+                            e.currentTarget.src = item.img;
+                          }
+                        }}
+                      />
+                      <div style={{
+                        position: "absolute",
+                        top: "10px",
+                        left: "10px",
+                        background: "rgba(0,0,0,0.65)",
+                        backdropFilter: "blur(4px)",
+                        color: "white",
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px"
+                      }}>
+                        {item.style}
+                      </div>
+                      <div style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        background: "rgba(0,0,0,0.65)",
+                        backdropFilter: "blur(4px)",
+                        color: "#f43f5e",
+                        padding: "3px 8px",
+                        borderRadius: "9999px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
+                      }}>
+                        <Heart size={11} fill="#f43f5e" /> {item.likes}
+                      </div>
+                    </div>
+
+                    <div className="mj-explore-meta">
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                          <h4 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>{item.title}</h4>
+                          <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>{item.author}</span>
+                        </div>
+                        <p className="mj-explore-prompt">{item.prompt}</p>
+                      </div>
+
+                      <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                        <button
+                          className="mj-remix-btn"
+                          style={{ flex: 1 }}
+                          onClick={() => handleRemix(item)}
+                          title="Load this prompt, style, and settings into generator"
+                        >
+                          <Sparkles size={12} /> Remix Prompt
+                        </button>
+                        <button
+                          style={{
+                            background: "var(--surface-hover)",
+                            border: "1px solid var(--border)",
+                            color: "var(--text-secondary)",
+                            padding: "7px 12px",
+                            borderRadius: "8px",
+                            fontSize: "11px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.prompt);
+                            setRemixToast("✓ Prompt copied to clipboard!");
+                            setTimeout(() => setRemixToast(""), 2500);
+                          }}
+                          title="Copy prompt"
+                        >
+                          <Copy size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* My Archive Tab */}
+        {activeTab === "archive" && (
+          <div className="mj-archive-container animate-slide-up">
+            <header className="mj-archive-header">
+              <div>
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: "28px", fontWeight: 400, color: "var(--text-primary)", textAlign: "left" }}>
+                  My Art Archive 📁
+                </h2>
+                <p style={{ color: "var(--text-muted)", fontSize: "13px", marginTop: "4px" }}>
+                  All your past creations are automatically stored safely in your browser.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "9999px", padding: "6px 14px", width: "min(260px, 100%)" }}>
+                  <Search size={14} color="var(--text-muted)" />
+                  <input
+                    type="text"
+                    placeholder="Search your history..."
+                    value={archiveSearch}
+                    onChange={(e) => setArchiveSearch(e.target.value)}
+                    style={{ background: "transparent", border: "none", outline: "none", color: "var(--text-primary)", fontSize: "12px", width: "100%" }}
+                  />
+                  {archiveSearch && (
+                    <button onClick={() => setArchiveSearch("")} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer" }}><X size={12} /></button>
+                  )}
+                </div>
+
+                {images.length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to clear your local image history?")) {
+                        setImages([]);
+                        localStorage.removeItem("chitra_history");
+                        localStorage.removeItem("khicho_history");
+                      }
+                    }}
+                    style={{
+                      background: "rgba(248, 113, 113, 0.1)",
+                      border: "1px solid rgba(248, 113, 113, 0.2)",
+                      color: "#f87171",
+                      padding: "6px 12px",
+                      borderRadius: "9999px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    <Trash2 size={12} /> Clear All
+                  </button>
+                )}
+              </div>
+            </header>
+
+            {images.filter(img => img.status === "done").length === 0 ? (
+              <div className="mj-gallery-empty" style={{ minHeight: "360px" }}>
+                <Archive size={40} strokeWidth={1} color="var(--text-muted)" />
+                <h2>No creations in archive yet</h2>
+                <p>Images you generate will appear here automatically so you never lose them.</p>
+                <button
+                  className="mj-generate-btn"
+                  style={{ marginTop: "16px", padding: "8px 20px" }}
+                  onClick={() => setActiveTab("create")}
+                >
+                  <Sparkles size={14} /> Start Creating
+                </button>
+              </div>
+            ) : (
+              <div className="mj-gallery-grid">
+                {images
+                  .filter((img) => img.status === "done" && (!archiveSearch || (img.prompt || "").toLowerCase().includes(archiveSearch.toLowerCase())))
+                  .map((img) => (
+                    <ImageCard
+                      key={img.id}
+                      item={img}
+                      onDelete={deleteImage}
+                      onImageClick={() => setSelectedImage(img)}
+                    />
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Video Studio Panel */}
+        {activeTab === "video" && (
           <div className="mj-video-studio animate-slide-up">
             <div className="mj-video-main">
               {/* Header */}
@@ -1237,6 +1725,89 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
             <p style={{ color: "var(--error)", fontSize: 12, marginTop: 6 }}>{error}</p>
           )}
 
+          {/* Active Tri-Engine Rig Badges */}
+          {(alchemyMode || ideogramText || cameraLens !== "none" || lightingRig !== "none" || colorPalette !== "none" || stylizeLevel !== 250 || chaosLevel > 0) && (
+            <div style={{
+              display: "flex",
+              gap: "6px",
+              flexWrap: "wrap",
+              padding: "6px 10px",
+              background: "rgba(0,0,0,0.35)",
+              backdropFilter: "blur(8px)",
+              borderRadius: "10px",
+              marginBottom: "8px",
+              alignItems: "center",
+              border: "1px solid var(--border)"
+            }}>
+              <span style={{ fontSize: "10px", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.6px" }}>Studio Rig:</span>
+              
+              {alchemyMode && (
+                <span style={{ fontSize: "11px", background: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.35)", color: "#f59e0b", padding: "2px 8px", borderRadius: "9999px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <Zap size={10} /> Alchemy PhotoReal <button onClick={() => setAlchemyMode(false)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}><X size={10} /></button>
+                </span>
+              )}
+
+              {ideogramText && (
+                <span style={{ fontSize: "11px", background: "rgba(6, 182, 212, 0.15)", border: "1px solid rgba(6, 182, 212, 0.35)", color: "#06b6d4", padding: "2px 8px", borderRadius: "9999px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <Type size={10} /> &ldquo;{ideogramText}&rdquo; <button onClick={() => setIdeogramText("")} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}><X size={10} /></button>
+                </span>
+              )}
+
+              {cameraLens !== "none" && (
+                <span style={{ fontSize: "11px", background: "rgba(139, 92, 246, 0.15)", border: "1px solid rgba(139, 92, 246, 0.35)", color: "#a78bfa", padding: "2px 8px", borderRadius: "9999px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <Camera size={10} /> {cameraLens.split(",")[0]} <button onClick={() => setCameraLens("none")} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}><X size={10} /></button>
+                </span>
+              )}
+
+              {lightingRig !== "none" && (
+                <span style={{ fontSize: "11px", background: "rgba(234, 179, 8, 0.15)", border: "1px solid rgba(234, 179, 8, 0.35)", color: "#eab308", padding: "2px 8px", borderRadius: "9999px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <SunMedium size={10} /> {lightingRig.split(" ")[0]} Light <button onClick={() => setLightingRig("none")} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}><X size={10} /></button>
+                </span>
+              )}
+
+              {colorPalette !== "none" && (
+                <span style={{ fontSize: "11px", background: "rgba(236, 72, 153, 0.15)", border: "1px solid rgba(236, 72, 153, 0.35)", color: "#ec4899", padding: "2px 8px", borderRadius: "9999px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <Palette size={10} /> {colorPalette.split(" ")[0]} <button onClick={() => setColorPalette("none")} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}><X size={10} /></button>
+                </span>
+              )}
+
+              {stylizeLevel !== 250 && (
+                <span style={{ fontSize: "11px", background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.35)", color: "#60a5fa", padding: "2px 8px", borderRadius: "9999px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  <Sparkles size={10} /> --s {stylizeLevel} <button onClick={() => setStylizeLevel(250)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}><X size={10} /></button>
+                </span>
+              )}
+
+              {chaosLevel > 0 && (
+                <span style={{ fontSize: "11px", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.35)", color: "#f87171", padding: "2px 8px", borderRadius: "9999px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                  --c {chaosLevel} <button onClick={() => setChaosLevel(0)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", padding: 0 }}><X size={10} /></button>
+                </span>
+              )}
+
+              <button
+                onClick={() => {
+                  setAlchemyMode(false);
+                  setIdeogramText("");
+                  setCameraLens("none");
+                  setLightingRig("none");
+                  setColorPalette("none");
+                  setStylizeLevel(250);
+                  setChaosLevel(0);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-muted)",
+                  fontSize: "10px",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                  marginLeft: "auto"
+                }}
+              >
+                Reset Rig
+              </button>
+            </div>
+          )}
+
           <div className="mj-prompt-toolbar">
             <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" style={{ display: "none" }} />
             <button className="mj-prompt-btn" onClick={() => fileInputRef.current?.click()}>
@@ -1248,55 +1819,393 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
             }} title="Get a random prompt suggestion">
               <Dices size={14} /> Surprise Me
             </button>
-            <button className="mj-prompt-btn" onClick={handleEnhancePrompt} title="Enhance prompt with cinematic style modifiers">
-              <Wand2 size={14} /> Enhance
+            <button
+              className={`mj-prompt-btn ${enhancingPrompt ? "mj-enhance-glow" : ""}`}
+              onClick={handleGeminiEnhancePrompt}
+              disabled={enhancingPrompt}
+              title="Enhance prompt with Gemini 2.5 Flash AI"
+            >
+              <Wand2 size={14} className={enhancingPrompt ? "animate-spin" : ""} />
+              {enhancingPrompt ? "Enhancing..." : "✨ AI Enhance"}
             </button>
             <button
               className={`mj-prompt-btn ${showSettings ? "active" : ""}`}
               onClick={() => setShowSettings((s) => !s)}
             >
-              <Settings2 size={14} /> Settings
+              <Settings2 size={14} /> Studio Rig
+            </button>
+            <button
+              className={`mj-prompt-btn ${showHistoryDrawer ? "active" : ""}`}
+              onClick={() => setShowHistoryDrawer((h) => !h)}
+              title="View recent prompt history"
+            >
+              <History size={14} /> History
+            </button>
+            <button
+              className={`mj-prompt-btn ${lockedSeed !== null ? "active" : ""}`}
+              onClick={() => {
+                if (lockedSeed !== null) {
+                  setLockedSeed(null);
+                  setRemixToast("🔓 Seed unlocked (Random seeds)");
+                } else {
+                  const newSeed = Math.floor(Math.random() * 800000) + 10000;
+                  setLockedSeed(newSeed);
+                  setRemixToast(`🔒 Seed locked to #${newSeed} for character consistency!`);
+                }
+                setTimeout(() => setRemixToast(""), 3000);
+              }}
+              title={lockedSeed !== null ? `Seed locked to #${lockedSeed}` : "Lock seed for character consistency"}
+            >
+              {lockedSeed !== null ? <Lock size={14} style={{ color: "#10b981" }} /> : <Unlock size={14} />}
+              {lockedSeed !== null ? `#${lockedSeed}` : "Seed"}
             </button>
 
             {showSettings && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", marginTop: "10px" }}>
-                <div className="mj-style-scroll hide-scrollbar" style={{ width: "100%", margin: 0 }}>
-                  {STYLES.map((s) => (
-                    <button
-                      key={s.id}
-                      className={`mj-prompt-btn ${style === s.id ? "active" : ""}`}
-                      onClick={() => setStyle(s.id)}
-                      style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-                    >
-                      {renderStyleIcon(s.lucideName)} {s.label}
-                    </button>
-                  ))}
+              <div style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+                width: "100%",
+                marginTop: "12px",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "16px",
+                padding: "16px",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+              }}>
+                {/* Engine Selector Tabs */}
+                <div style={{
+                  display: "flex",
+                  gap: "6px",
+                  borderBottom: "1px solid var(--border)",
+                  paddingBottom: "10px",
+                  overflowX: "auto"
+                }} className="hide-scrollbar">
+                  {[
+                    { id: "presets", label: "Presets & Styles", icon: Palette },
+                    { id: "midjourney", label: "Midjourney v6", icon: Sparkles },
+                    { id: "leonardo", label: "Leonardo.ai Optics", icon: Camera },
+                    { id: "ideogram", label: "Ideogram 2.0 Typography", icon: Type }
+                  ].map((tab) => {
+                    const TabIcon = tab.icon;
+                    const isActive = engineTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setEngineTab(tab.id)}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "6px 14px",
+                          borderRadius: "9999px",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          border: `1px solid ${isActive ? "var(--accent)" : "transparent"}`,
+                          background: isActive ? "var(--accent-bg)" : "transparent",
+                          color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
+                          transition: "all 0.15s ease"
+                        }}
+                      >
+                        <TabIcon size={13} style={{ color: isActive ? "var(--accent)" : "inherit" }} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
                 </div>
-                
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: "8px" }}>
-                  <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, marginRight: "6px" }}>Aspect Ratio:</span>
-                  {["1:1", "16:9", "9:16", "3:4", "4:5"].map((ratio) => (
-                    <button
-                      key={ratio}
-                      className={`mj-prompt-btn ${aspectRatio === ratio ? "active" : ""}`}
-                      onClick={() => setAspectRatio(ratio)}
-                      style={{ 
-                        fontSize: "11px", 
-                        padding: "4px 8px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px"
-                      }}
-                    >
-                      {ratio === "1:1" && <Square size={12} />}
-                      {ratio === "16:9" && <Tv size={12} />}
-                      {ratio === "9:16" && <Smartphone size={12} />}
-                      {ratio === "3:4" && <Image size={12} />}
-                      {ratio === "4:5" && <Image size={12} />}
-                      {ratio}
-                    </button>
-                  ))}
-                </div>
+
+                {/* Tab 1: Presets & Styles */}
+                {engineTab === "presets" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>Artistic Style:</span>
+                      <div className="mj-style-scroll hide-scrollbar" style={{ width: "100%", margin: 0 }}>
+                        {STYLES.map((s) => (
+                          <button
+                            key={s.id}
+                            className={`mj-prompt-btn ${style === s.id ? "active" : ""}`}
+                            onClick={() => setStyle(s.id)}
+                            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                          >
+                            {renderStyleIcon(s.lucideName)} {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: "10px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, marginRight: "6px" }}>Aspect Ratio:</span>
+                      {["1:1", "16:9", "9:16", "3:4", "4:5"].map((ratio) => (
+                        <button
+                          key={ratio}
+                          className={`mj-prompt-btn ${aspectRatio === ratio ? "active" : ""}`}
+                          onClick={() => setAspectRatio(ratio)}
+                          style={{ fontSize: "11px", padding: "4px 8px", display: "inline-flex", alignItems: "center", gap: "4px" }}
+                        >
+                          {ratio === "1:1" && <Square size={12} />}
+                          {ratio === "16:9" && <Tv size={12} />}
+                          {ratio === "9:16" && <Smartphone size={12} />}
+                          {ratio === "3:4" && <Image size={12} />}
+                          {ratio === "4:5" && <Image size={12} />}
+                          {ratio}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "6px", borderTop: "1px solid var(--border)", paddingTop: "10px" }}>
+                      <label style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>Negative Prompt (Elements to avoid):</label>
+                      <input
+                        type="text"
+                        value={negativePrompt}
+                        onChange={(e) => setNegativePrompt(e.target.value)}
+                        placeholder="e.g. blurry, deformed, extra fingers, text, watermark"
+                        style={{
+                          background: "var(--bg-secondary)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "8px",
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          color: "var(--text-primary)",
+                          outline: "none"
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 2: Midjourney v6 Engine */}
+                {engineTab === "midjourney" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>Stylize Intensity (--stylize):</span>
+                        <span style={{ fontSize: "11px", color: "#60a5fa", fontWeight: 700 }}>--s {stylizeLevel}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                        {[
+                          { val: 50, label: "Subtle (50)" },
+                          { val: 250, label: "Standard (250)" },
+                          { val: 750, label: "Artistic (750)" },
+                          { val: 1000, label: "Avant-Garde (1000)" }
+                        ].map((item) => (
+                          <button
+                            key={item.val}
+                            onClick={() => setStylizeLevel(item.val)}
+                            className={`mj-prompt-btn ${stylizeLevel === item.val ? "active" : ""}`}
+                            style={{ fontSize: "11px", padding: "5px 12px" }}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "10px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>Chaos &amp; Variance (--chaos):</span>
+                        <span style={{ fontSize: "11px", color: "#f87171", fontWeight: 700 }}>--c {chaosLevel}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                        {[
+                          { val: 0, label: "Zero Chaos (0)" },
+                          { val: 25, label: "Moderate Drift (25)" },
+                          { val: 50, label: "High Divergence (50)" }
+                        ].map((item) => (
+                          <button
+                            key={item.val}
+                            onClick={() => setChaosLevel(item.val)}
+                            className={`mj-prompt-btn ${chaosLevel === item.val ? "active" : ""}`}
+                            style={{ fontSize: "11px", padding: "5px 12px" }}
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "10px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>Midjourney Aspect Formats:</span>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                        {["1:1", "16:9", "9:16", "4:5", "21:9"].map((ratio) => (
+                          <button
+                            key={ratio}
+                            onClick={() => setAspectRatio(ratio)}
+                            className={`mj-prompt-btn ${aspectRatio === ratio ? "active" : ""}`}
+                            style={{ fontSize: "11px", padding: "4px 10px" }}
+                          >
+                            {ratio === "21:9" ? "21:9 Cinema" : ratio}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 3: Leonardo.ai Optics */}
+                {engineTab === "leonardo" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    {/* Alchemy PhotoReal Toggle */}
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      background: alchemyMode ? "rgba(245, 158, 11, 0.1)" : "var(--bg-secondary)",
+                      border: `1px solid ${alchemyMode ? "rgba(245, 158, 11, 0.3)" : "var(--border)"}`,
+                      borderRadius: "12px",
+                      padding: "10px 14px",
+                      transition: "all 0.2s ease"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <Zap size={18} style={{ color: alchemyMode ? "#f59e0b" : "var(--text-muted)" }} />
+                        <div>
+                          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-primary)" }}>
+                            Leonardo PhotoReal Alchemy v2
+                          </div>
+                          <div style={{ fontSize: "11px", color: "var(--text-secondary)" }}>
+                            Hyper-detailed raytracing, sub-surface scattering &amp; high dynamic range
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setAlchemyMode((m) => !m)}
+                        style={{
+                          background: alchemyMode ? "#f59e0b" : "rgba(255, 255, 255, 0.08)",
+                          color: alchemyMode ? "#000" : "var(--text-secondary)",
+                          border: "none",
+                          borderRadius: "9999px",
+                          padding: "6px 14px",
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "all 0.2s"
+                        }}
+                      >
+                        {alchemyMode ? "ENABLED" : "OFF"}
+                      </button>
+                    </div>
+
+                    {/* Camera Lens Optics */}
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "10px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>Camera &amp; Lens Optics:</span>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                        {[
+                          { id: "none", label: "Auto Lens" },
+                          { id: "35mm cinematic prime camera, f/1.8", label: "35mm Prime" },
+                          { id: "85mm portrait lens, f/1.4 creamy bokeh", label: "85mm Portrait Bokeh" },
+                          { id: "16mm ultra-wide angle architectural lens", label: "16mm Wide Angle" },
+                          { id: "macro camera lens, extreme fine detail", label: "Macro Extreme" },
+                          { id: "drone aerial top-down camera", label: "Drone Aerial" }
+                        ].map((cam) => (
+                          <button
+                            key={cam.id}
+                            onClick={() => setCameraLens(cam.id)}
+                            className={`mj-prompt-btn ${cameraLens === cam.id ? "active" : ""}`}
+                            style={{ fontSize: "11px", padding: "4px 10px" }}
+                          >
+                            {cam.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Studio Lighting Rig */}
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "10px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>Studio Lighting Rig:</span>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                        {[
+                          { id: "none", label: "Natural Light" },
+                          { id: "studio softbox rim lighting with crisp edge definition", label: "Studio Softbox" },
+                          { id: "golden hour directional warm sunlight and lens flare", label: "Golden Hour" },
+                          { id: "dramatic chiaroscuro lighting with deep Caravaggio shadows", label: "Chiaroscuro Noir" },
+                          { id: "cyberpunk volumetric dual-tone cyan and magenta neon", label: "Cyberpunk Neon" }
+                        ].map((light) => (
+                          <button
+                            key={light.id}
+                            onClick={() => setLightingRig(light.id)}
+                            className={`mj-prompt-btn ${lightingRig === light.id ? "active" : ""}`}
+                            style={{ fontSize: "11px", padding: "4px 10px" }}
+                          >
+                            {light.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 4: Ideogram 2.0 Typography */}
+                {engineTab === "ideogram" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                    <div>
+                      <label style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>
+                        Exact Typography / Words to Render:
+                      </label>
+                      <input
+                        type="text"
+                        value={ideogramText}
+                        onChange={(e) => setIdeogramText(e.target.value)}
+                        placeholder="e.g. TECHINDRO, Cyber Café, Chitra AI, Tokyo Dreams"
+                        style={{
+                          width: "100%",
+                          background: "var(--bg-secondary)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "8px",
+                          padding: "8px 12px",
+                          fontSize: "12px",
+                          color: "var(--text-primary)",
+                          outline: "none"
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>Typography Style:</span>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                        {[
+                          "3D Chrome & Glass",
+                          "Vibrant Neon Sign",
+                          "Swiss Modern Serif",
+                          "Vintage Retro Badge",
+                          "Graffiti Mural"
+                        ].map((tStyle) => (
+                          <button
+                            key={tStyle}
+                            onClick={() => setIdeogramTypeStyle(tStyle)}
+                            className={`mj-prompt-btn ${ideogramTypeStyle === tStyle ? "active" : ""}`}
+                            style={{ fontSize: "11px", padding: "4px 10px" }}
+                          >
+                            {tStyle}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: "1px solid var(--border)", paddingTop: "10px" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>Harmonic Color Palette:</span>
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                        {[
+                          { id: "none", label: "Auto Colors" },
+                          { id: "warm amber and gold sunset", label: "Amber Sunset" },
+                          { id: "cinematic teal and orange", label: "Teal & Orange" },
+                          { id: "cyberpunk magenta and electric cyan", label: "Cyberpunk" },
+                          { id: "monochrome high-contrast film noir", label: "Noir B&W" },
+                          { id: "pastel lilac and soft mint dreamscape", label: "Pastel Dream" }
+                        ].map((pal) => (
+                          <button
+                            key={pal.id}
+                            onClick={() => setColorPalette(pal.id)}
+                            className={`mj-prompt-btn ${colorPalette === pal.id ? "active" : ""}`}
+                            style={{ fontSize: "11px", padding: "4px 10px" }}
+                          >
+                            {pal.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1308,7 +2217,12 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
               ))}
             </div>
 
-            <button className="mj-generate-btn" onClick={generate} disabled={loading}>
+            <button
+              className="mj-generate-btn"
+              onClick={generate}
+              disabled={loading}
+              title="Generate art (Press Enter or Ctrl+Enter)"
+            >
               {loading ? (
                 <>
                   <div style={{
@@ -1320,7 +2234,7 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
                 </>
               ) : (
                 <>
-                  <Sparkles size={14} /> Imagine
+                  <Sparkles size={14} /> Imagine <span style={{ fontSize: "10px", opacity: 0.6, marginLeft: "4px" }}>↵</span>
                 </>
               )}
             </button>
@@ -1386,70 +2300,274 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
 
             {/* Modal Content Wrapper */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", flex: 1, overflow: "hidden" }}>
-              {/* Image Container */}
-              <div style={{ background: "#000", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative", aspectRatio: "1" }}>
+              {/* Image Container with Badges */}
+              <div style={{
+                background: "#0a0a0a",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                position: "relative",
+                aspectRatio: "1",
+                backgroundImage: bgRemovedUrl ? "linear-gradient(45deg, #1f1f1f 25%, transparent 25%), linear-gradient(-45deg, #1f1f1f 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1f1f1f 75%), linear-gradient(-45deg, transparent 75%, #1f1f1f 75%)" : "none",
+                backgroundSize: "20px 20px",
+                backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px"
+              }}>
                 <img
-                  src={selectedImage.url}
+                  src={bgRemovedUrl || upscaledUrl || selectedImage.url}
                   alt={selectedImage.prompt}
                   style={{ width: "100%", height: "100%", objectFit: "contain" }}
                 />
+
+                {/* Processing Overlay Badge */}
+                {(upscaledUrl || bgRemovedUrl) && (
+                  <div style={{
+                    position: "absolute",
+                    top: "14px",
+                    left: "14px",
+                    padding: "6px 12px",
+                    borderRadius: "9999px",
+                    background: "rgba(16, 185, 129, 0.9)",
+                    backdropFilter: "blur(6px)",
+                    color: "white",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.4)"
+                  }}>
+                    {bgRemovedUrl ? "✂️ Transparent Cutout" : "✨ 4K Super-Resolution Active"}
+                  </div>
+                )}
               </div>
 
               {/* Details Sidebar */}
-              <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "20px", background: "var(--bg-secondary)", textAlign: "left" }}>
+              <div style={{ padding: "24px 22px", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "16px", background: "var(--bg-secondary)", textAlign: "left", overflowY: "auto" }}>
                 <div>
-                  <span style={{
-                    fontSize: "11px",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px",
-                    color: "#8b5cf6",
-                    background: "rgba(139, 92, 246, 0.08)",
-                    padding: "4px 10px",
-                    borderRadius: "9999px",
-                    fontWeight: 600,
-                    display: "inline-block",
-                    marginBottom: "16px"
-                  }}>
-                    Generation Details
-                  </span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <span style={{
+                      fontSize: "11px",
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                      color: "#8b5cf6",
+                      background: "rgba(139, 92, 246, 0.08)",
+                      padding: "4px 10px",
+                      borderRadius: "9999px",
+                      fontWeight: 600,
+                      display: "inline-block",
+                    }}>
+                      Generation Details
+                    </span>
 
-                  <h4 style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px" }}>Prompt</h4>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                      Seed: #{selectedImage.seed || "Auto"}
+                    </span>
+                  </div>
+
+                  <h4 style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px" }}>Prompt</h4>
                   <div style={{
                     background: "var(--surface)",
                     border: "1px solid var(--border)",
                     borderRadius: "12px",
-                    padding: "16px",
+                    padding: "12px 14px",
                     color: "var(--text-primary)",
                     fontSize: "13px",
                     lineHeight: 1.5,
-                    marginBottom: "20px",
-                    maxHeight: "150px",
+                    marginBottom: "16px",
+                    maxHeight: "120px",
                     overflowY: "auto"
                   }}>
                     {selectedImage.prompt}
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
                     <div>
-                      <h4 style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>Style</h4>
+                      <h4 style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "2px" }}>Style</h4>
                       <span style={{ fontSize: "13px", color: "var(--text-primary)" }}>
                         {STYLES.find((s) => s.id === selectedImage.style)?.label || "Default"}
                       </span>
                     </div>
                     <div>
-                      <h4 style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "4px" }}>Created At</h4>
+                      <h4 style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "2px" }}>Created At</h4>
                       <span style={{ fontSize: "13px", color: "var(--text-primary)" }}>
                         {new Date(selectedImage.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                   </div>
+
+                  {/* AI Creative Power Tools */}
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: "14px", marginBottom: "14px" }}>
+                    <h4 style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      AI Studio Tools
+                    </h4>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                      <button
+                        onClick={handleUpscale4K}
+                        disabled={upscaling}
+                        style={{
+                          padding: "10px",
+                          background: upscaledUrl ? "rgba(16, 185, 129, 0.15)" : "rgba(139, 92, 246, 0.1)",
+                          border: upscaledUrl ? "1px solid #10b981" : "1px solid rgba(139, 92, 246, 0.25)",
+                          color: upscaledUrl ? "#10b981" : "var(--text-primary)",
+                          borderRadius: "10px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: upscaling ? "wait" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        <Maximize2 size={13} className={upscaling ? "animate-spin" : ""} />
+                        <span>{upscaling ? "Processing 4K..." : upscaledUrl ? "✓ 4K Active" : "✨ 4K Upscale"}</span>
+                      </button>
+
+                      <button
+                        onClick={handleRemoveBg}
+                        disabled={removingBg}
+                        style={{
+                          padding: "10px",
+                          background: bgRemovedUrl ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.04)",
+                          border: bgRemovedUrl ? "1px solid #10b981" : "1px solid var(--border)",
+                          color: bgRemovedUrl ? "#10b981" : "var(--text-primary)",
+                          borderRadius: "10px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: removingBg ? "wait" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        <Scissors size={13} className={removingBg ? "animate-spin" : ""} />
+                        <span>{removingBg ? "Isolating..." : bgRemovedUrl ? "✓ Cutout Active" : "✂️ Remove BG"}</span>
+                      </button>
+
+                      {/* Midjourney Style Variations */}
+                      <button
+                        onClick={() => {
+                          const variedPrompt = `${selectedImage.prompt}, subtle aesthetic refinement, nuanced lighting variation`;
+                          setPrompt(variedPrompt);
+                          setSelectedImage(null);
+                          setRemixToast("🔀 Midjourney Vary (Subtle) loaded! Generating...");
+                          setTimeout(() => setRemixToast(""), 3000);
+                        }}
+                        style={{
+                          padding: "10px",
+                          background: "rgba(255, 255, 255, 0.04)",
+                          border: "1px solid var(--border)",
+                          color: "var(--text-primary)",
+                          borderRadius: "10px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        <RefreshCw size={13} />
+                        <span>Vary (Subtle)</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          const variedPrompt = `${selectedImage.prompt}, dramatic perspective shift, dynamic bold composition, evolved atmosphere`;
+                          setPrompt(variedPrompt);
+                          setSelectedImage(null);
+                          setRemixToast("⚡ Midjourney Vary (Strong) loaded! Generating...");
+                          setTimeout(() => setRemixToast(""), 3000);
+                        }}
+                        style={{
+                          padding: "10px",
+                          background: "rgba(255, 255, 255, 0.04)",
+                          border: "1px solid var(--border)",
+                          color: "var(--text-primary)",
+                          borderRadius: "10px",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        <Zap size={13} style={{ color: "#f59e0b" }} />
+                        <span>Vary (Strong)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Social Share Bar */}
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: "12px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Share:</span>
+                    <button
+                      onClick={handleShareWhatsApp}
+                      style={{
+                        padding: "5px 10px",
+                        background: "rgba(37, 211, 102, 0.1)",
+                        border: "1px solid rgba(37, 211, 102, 0.3)",
+                        color: "#25d366",
+                        borderRadius: "8px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
+                      }}
+                    >
+                      <Share2 size={11} /> WhatsApp
+                    </button>
+                    <button
+                      onClick={handleShareTwitter}
+                      style={{
+                        padding: "5px 10px",
+                        background: "rgba(29, 155, 240, 0.1)",
+                        border: "1px solid rgba(29, 155, 240, 0.3)",
+                        color: "#1d9bf0",
+                        borderRadius: "8px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
+                      }}
+                    >
+                      <Share2 size={11} /> Twitter / X
+                    </button>
+                    <button
+                      onClick={handleCopyShareLink}
+                      style={{
+                        padding: "5px 10px",
+                        background: "rgba(255, 255, 255, 0.04)",
+                        border: "1px solid var(--border)",
+                        color: "var(--text-secondary)",
+                        borderRadius: "8px",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        cursor: "pointer"
+                      }}
+                    >
+                      Copy Link
+                    </button>
+                  </div>
                 </div>
 
-                {/* Action buttons */}
-                <div style={{ display: "flex", gap: "10px" }}>
+                {/* Primary Action Buttons */}
+                <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
                   <button
                     onClick={async () => {
-                      await downloadImage(selectedImage.url, `khicho-${selectedImage.id}.jpg`);
+                      const activeUrl = bgRemovedUrl || upscaledUrl || selectedImage.url;
+                      const ext = (bgRemovedUrl || upscaledUrl) ? "png" : "jpg";
+                      await downloadImage(activeUrl, `chitra-${selectedImage.id}.${ext}`);
                     }}
                     style={{
                       flex: 1,
@@ -1467,7 +2585,8 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
                       gap: "6px"
                     }}
                   >
-                    <Download size={14} /> Download High-Res
+                    <Download size={14} />
+                    {bgRemovedUrl ? "Download Cutout (PNG)" : upscaledUrl ? "Download 4K Ultra-HD" : "Download High-Res"}
                   </button>
                   <button
                     onClick={handleModalCopy}
@@ -1486,15 +2605,190 @@ export default function Dashboard({ user, hfToken, ideogramApiKey, currentTier, 
                       gap: "6px"
                     }}
                   >
-                    {modalCopied ? (
-                      <>✓ Copied</>
-                    ) : (
-                      <><Copy size={14} /> Copy Prompt</>
-                    )}
+                    {modalCopied ? <>✓ Copied</> : <><Copy size={14} /> Copy Prompt</>}
                   </button>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Prompt History Drawer Modal */}
+      {showHistoryDrawer && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 2200,
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            justifyContent: "flex-end",
+            animation: "fadeIn 0.15s ease"
+          }}
+          onClick={() => setShowHistoryDrawer(false)}
+        >
+          <div
+            style={{
+              width: "min(460px, 90vw)",
+              height: "100%",
+              background: "var(--surface)",
+              borderLeft: "1px solid var(--border)",
+              boxShadow: "var(--shadow-xl)",
+              display: "flex",
+              flexDirection: "column",
+              padding: "24px 20px",
+              gap: "16px",
+              animation: "slideInRight 0.2s ease",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <History size={18} style={{ color: "var(--accent)" }} />
+                <h3 style={{ fontSize: "16px", fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+                  Prompt History
+                </h3>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)", background: "var(--bg-secondary)", padding: "2px 8px", borderRadius: "9999px" }}>
+                  {promptHistory.length}
+                </span>
+              </div>
+              <button
+                onClick={() => setShowHistoryDrawer(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                  padding: "4px",
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Search filter */}
+            <div style={{ position: "relative" }}>
+              <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
+              <input
+                type="text"
+                value={historySearch}
+                onChange={(e) => setHistorySearch(e.target.value)}
+                placeholder="Search past prompts..."
+                style={{
+                  width: "100%",
+                  padding: "8px 12px 8px 34px",
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "10px",
+                  color: "var(--text-primary)",
+                  fontSize: "13px",
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            {/* List */}
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }} className="hide-scrollbar">
+              {promptHistory
+                .filter((p) => !historySearch || p.text.toLowerCase().includes(historySearch.toLowerCase()))
+                .map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      padding: "14px",
+                      borderRadius: "12px",
+                      background: "var(--bg-secondary)",
+                      border: "1px solid var(--border)",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                      transition: "border-color 0.15s ease",
+                    }}
+                  >
+                    <p style={{ margin: 0, fontSize: "13px", color: "var(--text-primary)", lineHeight: 1.5 }}>
+                      {item.text}
+                    </p>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                        {new Date(item.time).toLocaleDateString([], { month: "short", day: "numeric" })} • {new Date(item.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(item.text);
+                            setRemixToast("✓ Copied prompt!");
+                            setTimeout(() => setRemixToast(""), 2000);
+                          }}
+                          style={{
+                            padding: "4px 8px",
+                            background: "transparent",
+                            border: "1px solid var(--border)",
+                            borderRadius: "6px",
+                            color: "var(--text-secondary)",
+                            fontSize: "11px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Copy
+                        </button>
+                        <button
+                          onClick={() => {
+                            setPrompt(item.text);
+                            if (item.style) setStyle(item.style);
+                            setShowHistoryDrawer(false);
+                            setRemixToast("✨ Loaded into prompt bar!");
+                            setTimeout(() => setRemixToast(""), 2500);
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            background: "var(--button-bg)",
+                            color: "var(--button-text)",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Use
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              {promptHistory.length === 0 && (
+                <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-muted)", fontSize: "13px" }}>
+                  No prompts recorded yet. Your generated prompts will appear here!
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            {promptHistory.length > 0 && (
+              <div style={{ borderTop: "1px solid var(--border)", paddingTop: "12px", display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("chitra_prompt_history");
+                    setPromptHistory([]);
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  <Trash2 size={13} /> Clear History
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

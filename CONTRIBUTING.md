@@ -1,8 +1,8 @@
-# Contributing to Khicho.AI 🚀
+# Contributing to Chitra-AI 🚀
 
 First of all, thank you so much for taking the time to contribute! Whether you are fixing a small bug, adding a gorgeous new UI style, or polishing our image generation logic, we are thrilled to have you here. 
 
-Khicho.AI is built on a mission to bring hyper-fast, state-of-the-art AI art rendering straight to creators with a clean, cinematic user experience. Let's build the future of AI canvas together.
+Chitra-AI is built on a mission to bring hyper-fast, state-of-the-art AI art rendering straight to creators with a clean, cinematic user experience. Let's build the future of AI canvas together.
 
 ---
 
@@ -13,8 +13,8 @@ Here is how you can set up the project on your machine:
 1. **Fork & Clone**
    Fork this repository and clone it to your local machine:
    ```bash
-   git clone https://github.com/your-username/khicho-chatbot.git
-   cd khicho-chatbot
+   git clone https://github.com/your-username/chitra-chatbot.git
+   cd chitra-chatbot
    ```
 
 2. **Install Dependencies**

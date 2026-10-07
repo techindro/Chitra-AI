@@ -1,19 +1,21 @@
 {
-  "name": "khicho-ai",
+  "name": "chitra-ai",
   "version": "1.0.0",
   "private": true,
-  "description": "Khicho.AI — India's most powerful AI image generator. Create Ghibli, Anime, Realistic, Cyberpunk art from text prompts.",
-  "author": "Khicho.AI Team",
+  "description": "Chitra AI — India's most powerful AI image generator. Create Ghibli, Anime, Realistic, Cyberpunk art from text prompts.",
+  "author": "Chitra AI Team",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "start": "node server.js",
+    "mcp": "node mcp-server.js",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "lucide-react": "^0.441.0",

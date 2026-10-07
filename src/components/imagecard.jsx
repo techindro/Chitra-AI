@@ -2,7 +2,7 @@ import { useState } from "react";
 import { downloadImage } from "@utils/imageGen";
 import { STYLES } from "../constants";
 import {
-  AlertTriangle, Clock, Sprout, Palette, Camera, Zap, Cpu, Brush, Box, Image, Gamepad2, Wand
+  AlertTriangle, Clock, Sprout, Palette, Camera, Zap, Cpu, Brush, Box, Image, Gamepad2, Wand, RefreshCw
 } from "lucide-react";
 
 const renderStyleIcon = (lucideName) => {
@@ -18,6 +18,8 @@ export default function ImageCard({ item, onDelete, onImageClick }) {
   const [downloading, setDownloading] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState(item.url);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   const handleCopy = (e) => {
     if (e) e.stopPropagation();
@@ -31,9 +33,42 @@ export default function ImageCard({ item, onDelete, onImageClick }) {
   const handleDownload = async (e) => {
     if (e) e.stopPropagation();
     setDownloading(true);
-    await downloadImage(item.url, `khicho-${item.id}.jpg`);
+    await downloadImage(currentUrl || item.url, `chitra-${item.id}.jpg`);
     setDownloading(false);
   };
+
+  const handleImageError = () => {
+    if (retryAttempt === 0 && (currentUrl || item.url)) {
+      setRetryAttempt(1);
+      let target = currentUrl || item.url;
+      if (target.includes("model=flux")) {
+        target = target.replace("model=flux", "model=turbo");
+      } else if (!target.includes("model=turbo")) {
+        target = `${target}&model=turbo`;
+      }
+      setCurrentUrl(target);
+      return;
+    }
+    if (retryAttempt === 1 && (currentUrl || item.url)) {
+      setRetryAttempt(2);
+      const target = (currentUrl || item.url).replace(/&model=[^&]*/g, "").replace(/model=[^&]*&?/g, "");
+      const newSeed = Math.floor(Math.random() * 800000) + 1000;
+      const seedReplaced = target.replace(/seed=\d+/, `seed=${newSeed}`);
+      setCurrentUrl(seedReplaced);
+      return;
+    }
+    setImgError(true);
+  };
+
+  const handleRetryManual = () => {
+    setImgError(false);
+    setRetryAttempt(0);
+    const newSeed = Math.floor(Math.random() * 800000) + 1000;
+    const base = (item.url || currentUrl).replace(/seed=\d+/, `seed=${newSeed}`);
+    const fallback = base.includes("model=turbo") ? base : `${base}&model=turbo`;
+    setCurrentUrl(fallback);
+  };
+
 
   // ── GENERATING STATE ──
   if (item.status === "generating") {
@@ -135,6 +170,18 @@ export default function ImageCard({ item, onDelete, onImageClick }) {
           <p style={{ color: "var(--error)", fontSize: "13px", textAlign: "center", margin: 0 }}>
             Image failed to load
           </p>
+          <button
+            onClick={handleRetryManual}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              background: "var(--accent)", color: "#fff", border: "none",
+              padding: "6px 14px", borderRadius: "8px", fontSize: "12px",
+              cursor: "pointer", fontWeight: 500, marginTop: "4px"
+            }}
+          >
+            <RefreshCw size={12} />
+            Try Again
+          </button>
         </div>
         <div style={{ padding: "10px 12px", display: "flex", justifyContent: "flex-end", borderTop: "1px solid var(--border)" }}>
           {onDelete && (
@@ -173,9 +220,9 @@ export default function ImageCard({ item, onDelete, onImageClick }) {
         }}
       >
         <img
-          src={item.url}
+          src={currentUrl || item.url}
           alt={item.prompt}
-          onError={() => setImgError(true)}
+          onError={handleImageError}
           style={{
             width: "100%", height: "100%",
             objectFit: "cover", display: "block",

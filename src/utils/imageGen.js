@@ -7,7 +7,7 @@ const dataUrlFromBlob = (blob) => {
   });
 };
 
-const compressImage = (blob, maxSize = 128) => {
+const compressImage = (blob, maxSize = 1024) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(blob);
@@ -21,7 +21,7 @@ const compressImage = (blob, maxSize = 128) => {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.5));
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Failed to load image")); };
     img.src = url;
@@ -29,7 +29,7 @@ const compressImage = (blob, maxSize = 128) => {
 };
 
 export const generateImageToImage = async (imageBlob, prompt, _hfToken, aspectRatio = "1:1") => {
-  const thumbDataUrl = await compressImage(imageBlob, 128);
+  const thumbDataUrl = await compressImage(imageBlob, 1024);
 
   try {
     const ratioStr = aspectRatio === "16:9" ? "1280:720" : 
@@ -74,23 +74,27 @@ export const generateImageToImage = async (imageBlob, prompt, _hfToken, aspectRa
 };
 
 const getSizes = (ratio) => {
-  if (ratio === "16:9") return { width: 768, height: 432 };
-  if (ratio === "9:16") return { width: 432, height: 768 };
-  if (ratio === "3:4")  return { width: 480, height: 640 };
-  if (ratio === "4:5")  return { width: 512, height: 640 };
-  return { width: 512, height: 512 };
+  if (ratio === "16:9") return { width: 1280, height: 720 };
+  if (ratio === "9:16") return { width: 720, height: 1280 };
+  if (ratio === "3:4")  return { width: 768, height: 1024 };
+  if (ratio === "4:5")  return { width: 800, height: 1000 };
+  return { width: 1024, height: 1024 };
 };
 
-const pollinationsUrl = (prompt, seed, w, h) =>
-  `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&nologo=true&enhance=true&model=flux&nocache=${Date.now()}`;
+const pollinationsUrl = (prompt, seed, w, h, model = "turbo") => {
+  const safeSeed = (seed && Number(seed) > 0 && Number(seed) < 2147483647)
+    ? Math.floor(Number(seed))
+    : (Math.floor(Math.random() * 900000) + 1000);
+  const modelQuery = model ? `&model=${model}` : "";
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${safeSeed}&nologo=true&enhance=false${modelQuery}`;
+};
 
-const checkImageUrl = (url) => {
-  return new Promise((resolve, reject) => {
+const checkImageUrl = (url, timeoutMs = 3000) => {
+  return new Promise((resolve) => {
     const img = new Image();
     const timer = setTimeout(() => {
-      img.src = "";
-      reject(new Error("Timeout loading image"));
-    }, 120000);
+      resolve(url);
+    }, timeoutMs);
 
     img.onload = () => {
       clearTimeout(timer);
@@ -99,14 +103,18 @@ const checkImageUrl = (url) => {
 
     img.onerror = () => {
       clearTimeout(timer);
-      reject(new Error("Failed to load image"));
+      if (url.includes("model=flux")) {
+        resolve(url.replace("model=flux", "model=turbo"));
+      } else {
+        resolve(url);
+      }
     };
 
     img.src = url;
   });
 };
 
-export const generateImage = async (prompt, index = 0, currentTier = "Free", ideogramApiKey = "", aspectRatio = "1:1") => {
+export const generateImage = async (prompt, index = 0, currentTier = "Free", ideogramApiKey = "", aspectRatio = "1:1", customSeed = null) => {
   if (currentTier !== "Free" && ideogramApiKey) {
     try {
       const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
@@ -140,19 +148,28 @@ export const generateImage = async (prompt, index = 0, currentTier = "Free", ide
   }
 
   const { width, height } = getSizes(aspectRatio);
-  const baseSeed = Date.now() + index * 9973 + Math.floor(Math.random() * 10000);
+  const baseSeed = customSeed !== null ? Number(customSeed) : (Math.floor(Math.random() * 800000) + 10000 + (index * 1337));
 
-  for (let i = 0; i < 3; i++) {
-    const seed = baseSeed + i * 50000;
-    const url = pollinationsUrl(prompt, seed, width, height);
-
-    try {
-      if (i > 0) await new Promise(r => setTimeout(r, 2000 * i));
-      return await checkImageUrl(url);
-    } catch (err) {
-      if (i === 2) throw err;
+  // 1. Try backend endpoint first (Gemini -> Pollinations pipeline)
+  try {
+    const res = await fetch("/api/pollinations/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, width, height, seed: baseSeed })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.url) {
+        return data.url;
+      }
     }
+  } catch (apiErr) {
+    console.warn("Backend pipeline unavailable, using direct free generator:", apiErr.message);
   }
+
+  // 2. Direct Pollinations URL (turbo engine - super fast, reliable, zero quota limits)
+  const directUrl = pollinationsUrl(prompt, baseSeed, width, height, "turbo");
+  return directUrl;
 };
 
 export const createImageJob = (prompt, style, index = 0, aspectRatio = "1:1") => ({
@@ -171,8 +188,11 @@ export const createImageJob = (prompt, style, index = 0, aspectRatio = "1:1") =>
 export const buildPrompt = (promptText, style) =>
   `${promptText}, ${style.tag}, high quality, detailed`;
 
-export const buildImageUrl = (p, s, w = 512, h = 512) =>
-  `https://image.pollinations.ai/prompt/${encodeURIComponent(p + ", high quality, detailed, masterpiece")}?width=${w}&height=${h}&seed=${s || (Math.random() * 999999 | 0)}&nologo=true&enhance=true`;
+export const buildImageUrl = (p, s, w = 1024, h = 1024, model = "turbo") => {
+  const safeSeed = (s && Number(s) > 0 && Number(s) < 2147483647) ? Math.floor(Number(s)) : (Math.floor(Math.random() * 900000) + 1000);
+  const modelQuery = model ? `&model=${model}` : "";
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=${w}&height=${h}&seed=${safeSeed}&nologo=true&enhance=false${modelQuery}`;
+};
 
 export const downloadImage = async (url, filename = "download.jpg") => {
   try {

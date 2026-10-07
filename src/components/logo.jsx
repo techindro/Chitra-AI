@@ -1,4 +1,4 @@
-export default function KhichoLogo({ size = "md", showMark = true, className }) {
+export default function ChitraLogo({ size = "md", showMark = true, className }) {
   const sizes = {
     sm: { mark: 24, text: "15px" },
     md: { mark: 30, text: "18px" },
@@ -34,7 +34,7 @@ export default function KhichoLogo({ size = "md", showMark = true, className }) 
         lineHeight: 1,
         letterSpacing: "-0.3px",
       }}>
-        Khicho
+        Chitra AI
       </span>
     </div>
   );

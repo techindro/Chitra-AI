@@ -15,17 +15,17 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState(() => {
-    return localStorage.getItem("khicho_subscription") || "Free";
+    return localStorage.getItem("chitra_subscription") || localStorage.getItem("khicho_subscription") || "Free";
   });
 
   const handleSubscribe = (tier) => {
     setSubscriptionTier(tier);
-    localStorage.setItem("khicho_subscription", tier);
+    localStorage.setItem("chitra_subscription", tier);
   };
 
   // Theme management
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("khicho_theme") || "dark";
+    return localStorage.getItem("chitra_theme") || localStorage.getItem("khicho_theme") || "dark";
   });
   
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function App() {
     } else {
       document.documentElement.classList.remove("light");
     }
-    localStorage.setItem("khicho_theme", theme);
+    localStorage.setItem("chitra_theme", theme);
   }, [theme]);
 
 

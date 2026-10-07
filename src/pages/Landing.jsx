@@ -3,10 +3,22 @@ import Logo from "@components/logo";
 import LazyImg from "@components/Lazylmg";
 import { HERO_PROMPTS, HIGHLIGHTS } from "../constants";
 import { buildImageUrl } from "@utils/imageGen";
-import { Sun, Moon, Zap, Palette, Shield, Download, Infinity, Smartphone, Heart } from "lucide-react";
+import { 
+  Sun, Moon, Zap, Palette, Shield, Download, Infinity, Smartphone, Heart,
+  Sparkles, ArrowRight, Star, CheckCircle2, Quote, BadgeCheck, Flame, Wand2, Layers, ShieldCheck, TrendingUp
+} from "lucide-react";
 
 export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPricingClick }) {
   const [scrolled, setScrolled] = useState(false);
+  const [heroPrompt, setHeroPrompt] = useState("");
+
+  const handleStartWithPrompt = (promptText) => {
+    const p = promptText || heroPrompt;
+    if (p) {
+      sessionStorage.setItem("chitra_initial_prompt", p);
+    }
+    onSignup();
+  };
 
   const footerLinkStyle = {
     color: "var(--text-secondary)",
@@ -36,7 +48,8 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
         {HERO_PROMPTS.slice(0, 12).map((item, i) => (
           <div key={i}>
             <LazyImg
-              src={buildImageUrl(item.p, item.s, 400, 400)}
+              src={item.img || buildImageUrl(item.p, item.s, 400, 400)}
+              fallbackSrc={buildImageUrl(item.p, item.s, 400, 400)}
               alt=""
               style={{ width: "100%", height: "100%" }}
             />
@@ -67,12 +80,113 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
         <h1 className="animate-slide-up animate-delay-1">
           Explore new<br /><em>ways of creating</em>
         </h1>
-        <p className="animate-slide-up animate-delay-2">
+        <p className="animate-slide-up animate-delay-2" style={{ maxWidth: "500px" }}>
           Turn your imagination into stunning visuals. Describe anything — we bring it to life.
         </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }} className="animate-slide-up animate-delay-3">
-          <button className="mj-cta-btn" onClick={onSignup}>Start Creating</button>
-          <button className="mj-ghost-btn" onClick={onLogin}>Sign In</button>
+
+        {/* Calm & Organic Prompt Bar (Blends naturally with background) */}
+        <div 
+          className="animate-slide-up animate-delay-3"
+          style={{
+            width: "100%",
+            maxWidth: "580px",
+            margin: "0 auto 16px",
+          }}
+        >
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            background: "rgba(255, 255, 255, 0.04)",
+            backdropFilter: "blur(16px)",
+            border: "1px solid var(--border)",
+            borderRadius: "9999px",
+            padding: "6px 8px 6px 18px",
+            gap: "10px",
+            transition: "border-color 0.2s ease",
+          }}>
+            <Wand2 size={16} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+            <input
+              type="text"
+              value={heroPrompt}
+              onChange={(e) => setHeroPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleStartWithPrompt();
+              }}
+              placeholder="A serene mountain monastery at twilight..."
+              style={{
+                flex: 1,
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: "var(--text-primary)",
+                fontSize: "14px",
+                fontFamily: "inherit",
+              }}
+            />
+            <button
+              onClick={() => handleStartWithPrompt()}
+              className="mj-cta-btn"
+              style={{
+                padding: "10px 22px",
+                fontSize: "13px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                borderRadius: "9999px",
+              }}
+            >
+              <span>Create</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* Calm Prompt Inspiration Chips (Real Icons, No Emojis) */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: "8px",
+            marginTop: "14px",
+          }}>
+            {[
+              { icon: Sparkles, text: "Enchanted misty forest" },
+              { icon: Palette, text: "Classical oil portrait" },
+              { icon: Flame, text: "Cyberpunk rainy alleyway" },
+            ].map((pill, idx) => {
+              const IconComp = pill.icon;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setHeroPrompt(pill.text)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "9999px",
+                    padding: "4px 12px",
+                    fontSize: "11px",
+                    color: "var(--text-secondary)",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border-hover)";
+                    e.currentTarget.style.color = "var(--text-primary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border)";
+                    e.currentTarget.style.color = "var(--text-secondary)";
+                  }}
+                >
+                  <IconComp size={11} style={{ opacity: 0.7 }} />
+                  <span>{pill.text}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -82,7 +196,8 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
           {HERO_PROMPTS.slice(0, 8).map((item, i) => (
             <div key={i}>
               <LazyImg
-                src={buildImageUrl(item.p, item.s, i < 2 ? 600 : 400, i < 2 ? 600 : 400)}
+                src={item.img || buildImageUrl(item.p, item.s, i < 2 ? 600 : 400, i < 2 ? 600 : 400)}
+                fallbackSrc={buildImageUrl(item.p, item.s, 400, 400)}
                 alt={item.p}
                 style={{ width: "100%", height: "100%" }}
               />
@@ -101,8 +216,245 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
         ))}
       </div>
 
-      {/* Startup / About Mission Section */}
-      {/* Features Grid Section (Leonardo.AI / Kling AI style) */}
+      {/* Silicon Valley Founder Review Spotlight */}
+      {/* Executive Spotlight & Leadership Endorsement */}
+      <section style={{
+        position: "relative",
+        zIndex: 1,
+        padding: "54px 24px 84px",
+        display: "flex",
+        justifyContent: "center",
+      }} className="animate-slide-up animate-delay-4">
+        <div style={{
+          width: "100%",
+          maxWidth: "940px",
+          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0.015) 100%)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          borderRadius: "28px",
+          padding: "44px 48px",
+          boxShadow: "0 30px 80px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12)",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "40px",
+          alignItems: "center",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          {/* Subtle top laser rim */}
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: "10%",
+            right: "10%",
+            height: "1px",
+            background: "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.7), rgba(56, 189, 248, 0.7), transparent)"
+          }} />
+
+          {/* Left Column: Portrait & Executive Credentials */}
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            paddingRight: "16px",
+            borderRight: "1px solid var(--border)",
+          }}>
+            {/* Founder Avatar with Luxury Ring & Active Signal */}
+            <div style={{ position: "relative", marginBottom: "20px" }}>
+              <div style={{
+                position: "absolute",
+                inset: "-4px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(56, 189, 248, 0.6))",
+                opacity: 0.7,
+                filter: "blur(6px)"
+              }} />
+              <img
+                src="/shubham-patel.jpg"
+                alt="Shubham Patel - Founder & CEO @techindro"
+                style={{
+                  position: "relative",
+                  width: "116px",
+                  height: "116px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "3px solid rgba(255, 255, 255, 0.25)",
+                  boxShadow: "0 16px 36px rgba(0, 0, 0, 0.6)",
+                  display: "block"
+                }}
+              />
+              <div style={{
+                position: "absolute",
+                bottom: "4px",
+                right: "6px",
+                background: "#0284c7",
+                borderRadius: "50%",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                border: "2px solid #0f172a"
+              }}>
+                <BadgeCheck size={16} style={{ color: "white" }} />
+              </div>
+            </div>
+
+            <h3 style={{
+              fontSize: "21px",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              margin: "0 0 5px",
+              letterSpacing: "-0.4px"
+            }}>
+              Shubham Patel
+            </h3>
+            
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "#a78bfa",
+              margin: "0 0 10px"
+            }}>
+              <span>Founder &amp; CEO</span>
+              <span style={{ opacity: 0.5 }}>•</span>
+              <span style={{ color: "var(--text-primary)" }}>@techindro</span>
+            </div>
+
+            {/* Credential Tags */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "center" }}>
+              <span style={{
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid var(--border)",
+                padding: "4px 14px",
+                borderRadius: "9999px",
+                letterSpacing: "0.5px",
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px"
+              }}>
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
+                AI Systems Architect &amp; Visionary
+              </span>
+
+              <span style={{
+                fontSize: "10px",
+                color: "var(--text-muted)",
+                letterSpacing: "0.8px",
+                textTransform: "uppercase",
+                fontWeight: 600
+              }}>
+                Enterprise Leadership Endorsement
+              </span>
+            </div>
+          </div>
+
+          {/* Right Column: In-Depth Perspective & Impact Metrics */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Quote size={22} style={{ color: "#8b5cf6", opacity: 0.9 }} />
+                <span style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "1.4px",
+                  color: "#a78bfa"
+                }}>
+                  Founder Keynote &amp; Vision
+                </span>
+              </div>
+              <span style={{
+                fontSize: "11px",
+                color: "var(--text-muted)",
+                background: "rgba(255, 255, 255, 0.03)",
+                border: "1px solid var(--border)",
+                padding: "2px 8px",
+                borderRadius: "6px",
+                fontWeight: 500
+              }}>
+                Techindro Labs
+              </span>
+            </div>
+
+            <p style={{
+              fontSize: "15px",
+              lineHeight: 1.75,
+              color: "var(--text-primary)",
+              margin: 0,
+              fontWeight: 400,
+              letterSpacing: "-0.2px"
+            }}>
+              &ldquo;Generative AI must transcend mere novelty to become an uncompromising production instrument. At Techindro, our mandate is delivering Silicon Valley-tier compute fidelity with instantaneous developer velocity. Chitra AI unites the aesthetic mastery of Midjourney, the precision typography of Ideogram, and the optical lighting control of Leonardo.ai into one cohesive, lightning-fast canvas.&rdquo;
+            </p>
+
+            {/* Impact Badges */}
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+              borderTop: "1px solid var(--border)",
+              paddingTop: "18px"
+            }}>
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                color: "#10b981",
+                background: "rgba(16, 185, 129, 0.08)",
+                border: "1px solid rgba(16, 185, 129, 0.25)",
+                padding: "5px 14px",
+                borderRadius: "9999px",
+                fontWeight: 600
+              }}>
+                <Zap size={13} /> Sub-4s Velocity
+              </span>
+
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                color: "#38bdf8",
+                background: "rgba(56, 189, 248, 0.08)",
+                border: "1px solid rgba(56, 189, 248, 0.25)",
+                padding: "5px 14px",
+                borderRadius: "9999px",
+                fontWeight: 600
+              }}>
+                <Sparkles size={13} /> Tri-Engine Fidelity
+              </span>
+
+              <span style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                color: "#c084fc",
+                background: "rgba(192, 132, 252, 0.08)",
+                border: "1px solid rgba(192, 132, 252, 0.25)",
+                padding: "5px 14px",
+                borderRadius: "9999px",
+                fontWeight: 600
+              }}>
+                <ShieldCheck size={13} /> Enterprise Verified
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid Section (Midjourney, Ideogram & Leonardo.ai Power Suite) */}
       <section style={{
         position: "relative",
         zIndex: 1,
@@ -111,8 +463,8 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
         borderTop: "1px solid var(--border)",
         borderBottom: "1px solid var(--border)",
       }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+        <div style={{ maxWidth: "1140px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "52px" }}>
             <span style={{
               fontSize: "11px",
               textTransform: "uppercase",
@@ -120,64 +472,90 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
               color: "#8b5cf6",
               fontWeight: 700,
               background: "rgba(139, 92, 246, 0.08)",
-              padding: "4px 12px",
+              padding: "4px 14px",
               borderRadius: "9999px",
               display: "inline-block",
               marginBottom: "16px"
             }}>
-              Features & Capabilities
+              Production Capabilities
             </span>
             <h2 style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(24px, 3.5vw, 36px)",
+              fontSize: "clamp(26px, 3.8vw, 38px)",
               fontWeight: 400,
               color: "var(--text-primary)",
               letterSpacing: "-0.5px"
             }}>
-              Next-generation AI creative tools
+              Powered by Tri-Engine Generative Architecture
             </h2>
+            <p style={{ color: "var(--text-secondary)", fontSize: "14px", maxWidth: "600px", margin: "10px auto 0" }}>
+              Synthesizing the core superpowers of the world&rsquo;s most advanced creative AI platforms into one seamless creative workflow.
+            </p>
           </div>
 
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
             gap: "24px"
           }}>
-            {/* Feature Cards */}
+            {/* Feature 1: Midjourney Engine */}
             <div className="mj-feature-card">
-              <Zap size={24} style={{ color: "#3b82f6", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Real-time Generation</h3>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>Images generate in less than 10 seconds with optimized pipeline scheduling.</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <Sparkles size={24} style={{ color: "#8b5cf6" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#8b5cf6", background: "rgba(139, 92, 246, 0.1)", padding: "2px 8px", borderRadius: "4px" }}>MIDJOURNEY v6</span>
+              </div>
+              <h3 style={{ fontSize: "17px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Stylize &amp; Variations Engine</h3>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>Control aesthetic intensity with granular `--stylize` sliders. Instant <strong>Vary (Subtle)</strong> and <strong>Vary (Strong)</strong> workflows with character seed consistency.</p>
             </div>
 
+            {/* Feature 2: Ideogram Engine */}
             <div className="mj-feature-card">
-              <Palette size={24} style={{ color: "#8b5cf6", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Ideogram v4 Engine</h3>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>Unlock state-of-the-art typographic text rendering and professional aesthetic details.</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <Palette size={24} style={{ color: "#06b6d4" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#06b6d4", background: "rgba(6, 182, 212, 0.1)", padding: "2px 8px", borderRadius: "4px" }}>IDEOGRAM 2.0</span>
+              </div>
+              <h3 style={{ fontSize: "17px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Typography &amp; Logo Engine</h3>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>Render razor-sharp text, quotes, and brand marks directly inside images. Choose from 3D Chrome, Neon Glow, or Swiss Serif styles with harmonic color palettes.</p>
             </div>
 
+            {/* Feature 3: Leonardo.ai Engine */}
             <div className="mj-feature-card">
-              <Shield size={24} style={{ color: "#10b981", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Safe & Private</h3>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>We respect ownership. Your generations, uploads, and prompts stay secure.</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <Zap size={24} style={{ color: "#f59e0b" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", background: "rgba(245, 158, 11, 0.1)", padding: "2px 8px", borderRadius: "4px" }}>LEONARDO ALCHEMY</span>
+              </div>
+              <h3 style={{ fontSize: "17px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>PhotoReal Optics &amp; Lighting Rigs</h3>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>One-click Alchemy PhotoReal toggle. Direct lens control across 35mm Prime, 85mm Bokeh f/1.4, Golden Hour, and dramatic Chiaroscuro studio rigs.</p>
             </div>
 
+            {/* Feature 4: Studio 4K Upscaler */}
             <div className="mj-feature-card">
-              <Download size={24} style={{ color: "#fb923c", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>High-Res Exports</h3>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>Download your artwork in high-fidelity JPG/PNG formats without any watermarks.</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <Download size={24} style={{ color: "#10b981" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#10b981", background: "rgba(16, 185, 129, 0.1)", padding: "2px 8px", borderRadius: "4px" }}>SUPER-RES</span>
+              </div>
+              <h3 style={{ fontSize: "17px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Native 4K Canvas Upscaling</h3>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>Multi-pass canvas bicubic interpolation and unsharp edge convolution to export print-ready, high-resolution artwork without cloud waiting queues.</p>
             </div>
 
+            {/* Feature 5: 1-Click Background Remover */}
             <div className="mj-feature-card">
-              <Infinity size={24} style={{ color: "#ef4444", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Unlimited Presets</h3>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>Easily switch between Ghibli, 3D Render, Cyberpunk, Watercolor, and Anime styles.</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <ShieldCheck size={24} style={{ color: "#ec4899" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#ec4899", background: "rgba(236, 72, 153, 0.1)", padding: "2px 8px", borderRadius: "4px" }}>PRECISION CUT</span>
+              </div>
+              <h3 style={{ fontSize: "17px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>1-Click Background Removal</h3>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>Instantly isolate subjects into transparent PNG cutouts ready for graphic design, sticker production, e-commerce, and digital presentations.</p>
             </div>
 
+            {/* Feature 6: Vision Lab & Video Studio */}
             <div className="mj-feature-card">
-              <Smartphone size={24} style={{ color: "#22d3ee", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>Multi-Device Canvas</h3>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>Create AI art on the go. Perfectly optimized for mobile web browsers and tablets.</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                <Infinity size={24} style={{ color: "#6366f1" }} />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#6366f1", background: "rgba(99, 102, 241, 0.1)", padding: "2px 8px", borderRadius: "4px" }}>MULTIMODAL</span>
+              </div>
+              <h3 style={{ fontSize: "17px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "8px" }}>AI Vision Lab &amp; Video Studio</h3>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.6 }}>Real-time CNN edge detection, simulated YOLO bounding boxes, and automated AI video presentations with voice synthesis in English and Hindi.</p>
             </div>
           </div>
         </div>
@@ -277,7 +655,7 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
           gap: "16px",
         }}>
           <p style={{ color: "var(--text-muted)", fontSize: "13px" }}>
-            &copy; {new Date().getFullYear()} Khicho.AI. All rights reserved.
+            &copy; {new Date().getFullYear()} Chitra AI. All rights reserved.
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
             <span style={{ color: "var(--text-muted)", fontSize: "13px", display: "flex", alignItems: "center", gap: "4px" }}>

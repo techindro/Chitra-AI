@@ -1,8 +1,8 @@
-# Khicho-AI-Studio
+# Chitra AI Studio
 
-# 🎨 Khicho - AI Chatbot & Image Generator
+# 🎨 Chitra AI - AI Chatbot & Image Generator
 
-![Khicho Banner](public/images/banner.png)
+![Chitra Banner](public/images/banner.png)
 
 ## 🌟 Features
 
@@ -24,5 +24,5 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/techindro/khicho_chatbot.git
-cd khicho-chatbots
+git clone https://github.com/techindro/chitra_chatbot.git
+cd chitra-chatbot

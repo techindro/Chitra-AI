@@ -13,7 +13,7 @@ Before deploying, make sure you have:
 ### Step 1: Add Blueprint on Render
 1. Log in to the [Render Dashboard](https://dashboard.render.com).
 2. Click **New** in the top right corner and select **Blueprint**.
-3. Connect your repository (`khicho_chatbot`).
+3. Connect your repository (`chitra_chatbot`).
 4. Render will automatically detect the `render.yaml` file in the root of your repository and configure the Web Service.
 
 ### Step 2: Configure Environment Variables
@@ -28,6 +28,6 @@ To enable RunwayML and Ideogram features, set the following environment variable
 
 ### Step 3: Verify and Access
 Once the build and deployment are complete:
-1. Render will host your Node.js application on a free `onrender.com` subdomain (e.g., `khicho-chatbot.onrender.com`).
+1. Render will host your Node.js application on a free `onrender.com` subdomain (e.g., `chitra-chatbot.onrender.com`).
 2. You can access the live URL from the service page in your dashboard.
 3. The server will dynamically serve the built React static files and handle API routing seamlessly.
