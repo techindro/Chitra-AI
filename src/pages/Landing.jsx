@@ -12,6 +12,7 @@ import {
 export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPricingClick }) {
   const [scrolled, setScrolled] = useState(false);
   const [heroPrompt, setHeroPrompt] = useState("");
+  const [billingCycle, setBillingCycle] = useState("monthly");
 
   const handleStartWithPrompt = (promptText) => {
     const p = promptText || heroPrompt;
@@ -68,7 +69,17 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
             {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <span className="mj-nav-link" style={{ cursor: "pointer" }}>Explore</span>
-          <span className="mj-nav-link" onClick={onPricingClick} style={{ cursor: "pointer" }}>Pricing</span>
+          <span
+            className="mj-nav-link"
+            onClick={() => {
+              const el = document.getElementById("pricing");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+              else onPricingClick();
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            Pricing
+          </span>
           <button className="mj-nav-link" onClick={onLogin}>Sign In</button>
           <button className="mj-cta-btn" onClick={onSignup} style={{ padding: "10px 24px", fontSize: 14 }}>
             Get Started
@@ -555,6 +566,342 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
         </div>
       </section>
 
+      {/* On-Page Pricing Section */}
+      <section id="pricing" style={{
+        position: "relative",
+        zIndex: 1,
+        padding: "80px 24px",
+        background: "var(--bg)",
+        borderTop: "1px solid var(--border)",
+      }}>
+        <div style={{ maxWidth: "1080px", margin: "0 auto", textAlign: "center" }}>
+          <span style={{
+            fontSize: "12px",
+            textTransform: "uppercase",
+            letterSpacing: "1.5px",
+            color: "#38bdf8",
+            fontWeight: 700,
+            background: "rgba(56, 189, 248, 0.08)",
+            padding: "5px 16px",
+            borderRadius: "9999px",
+            display: "inline-block",
+            marginBottom: "14px"
+          }}>
+            Simple, Transparent Pricing
+          </span>
+          <h2 style={{
+            fontSize: "clamp(26px, 4vw, 38px)",
+            fontWeight: 700,
+            color: "var(--text-primary)",
+            margin: "0 0 10px",
+            letterSpacing: "-0.5px"
+          }}>
+            Start free, upgrade when you need.
+          </h2>
+          <p style={{
+            fontSize: "15px",
+            color: "var(--text-secondary)",
+            maxWidth: "520px",
+            margin: "0 auto 30px"
+          }}>
+            No hidden fees or surprise renewals. Transparent plans built for creators, designers, and studios.
+          </p>
+
+          {/* Billing Cycle Toggle */}
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            background: "var(--bg-secondary)",
+            padding: "4px",
+            borderRadius: "9999px",
+            border: "1px solid var(--border)",
+            marginBottom: "44px"
+          }}>
+            <button
+              onClick={() => setBillingCycle("monthly")}
+              style={{
+                padding: "6px 18px",
+                border: "none",
+                borderRadius: "9999px",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+                background: billingCycle === "monthly" ? "var(--surface)" : "transparent",
+                color: billingCycle === "monthly" ? "var(--text-primary)" : "var(--text-muted)",
+                boxShadow: billingCycle === "monthly" ? "var(--shadow-sm)" : "none",
+                transition: "all 0.2s"
+              }}
+            >
+              Monthly Billing
+            </button>
+            <button
+              onClick={() => setBillingCycle("yearly")}
+              style={{
+                padding: "6px 18px",
+                border: "none",
+                borderRadius: "9999px",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+                position: "relative",
+                background: billingCycle === "yearly" ? "var(--surface)" : "transparent",
+                color: billingCycle === "yearly" ? "var(--text-primary)" : "var(--text-muted)",
+                boxShadow: billingCycle === "yearly" ? "var(--shadow-sm)" : "none",
+                transition: "all 0.2s"
+              }}
+            >
+              Yearly (Save 20%)
+              <span style={{
+                position: "absolute",
+                top: "-8px",
+                right: "-6px",
+                background: "#10b981",
+                color: "#ffffff",
+                fontSize: "9px",
+                fontWeight: 700,
+                padding: "2px 6px",
+                borderRadius: "9999px"
+              }}>
+                SAVE 20%
+              </span>
+            </button>
+          </div>
+
+          {/* 3 Pricing Cards */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gap: "24px",
+            textAlign: "left"
+          }}>
+            {/* Plan 1: Free */}
+            <div style={{
+              background: "var(--bg-secondary)",
+              border: "1px solid var(--border)",
+              borderRadius: "22px",
+              padding: "32px 28px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              transition: "transform 0.2s",
+            }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                  <h3 style={{ fontSize: "19px", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>Free Forever</h3>
+                  <Sparkles size={20} style={{ color: "var(--text-muted)" }} />
+                </div>
+                <p style={{ color: "var(--text-secondary)", fontSize: "13px", lineHeight: 1.5, margin: "0 0 18px" }}>
+                  Perfect for exploring AI art, personal projects and hobby creations.
+                </p>
+                <div style={{ marginBottom: "20px" }}>
+                  <span style={{ fontSize: "32px", fontWeight: 800, color: "var(--text-primary)" }}>₹0</span>
+                  <span style={{ color: "var(--text-muted)", fontSize: "14px" }}> / month</span>
+                </div>
+                <div style={{ height: "1px", background: "var(--border)", marginBottom: "20px" }} />
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {[
+                    "Instant Sub-2s generation speed",
+                    "50 Free creations included",
+                    "Full 1024x1024 HD image exports",
+                    "Access to all 10+ art styles",
+                    "Free 4K Upscaler & BG Remover",
+                    "Personal use license"
+                  ].map((f, idx) => (
+                    <li key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "var(--text-secondary)" }}>
+                      <Check size={15} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                onClick={onSignup}
+                style={{
+                  width: "100%",
+                  marginTop: "28px",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  background: "var(--bg-tertiary)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border)",
+                  transition: "all 0.2s"
+                }}
+              >
+                Start Free
+              </button>
+            </div>
+
+            {/* Plan 2: Pro Creator (Highlighted) */}
+            <div style={{
+              background: "linear-gradient(180deg, rgba(56, 189, 248, 0.06) 0%, var(--bg-secondary) 100%)",
+              border: "2px solid #38bdf8",
+              borderRadius: "22px",
+              padding: "32px 28px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              position: "relative",
+              boxShadow: "0 12px 36px rgba(56, 189, 248, 0.15)",
+              transform: "translateY(-6px)"
+            }}>
+              <span style={{
+                position: "absolute",
+                top: "-12px",
+                left: "24px",
+                background: "#38bdf8",
+                color: "#0f172a",
+                fontSize: "11px",
+                fontWeight: 800,
+                textTransform: "uppercase",
+                padding: "3px 12px",
+                borderRadius: "9999px",
+                letterSpacing: "0.5px"
+              }}>
+                Most Popular
+              </span>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                  <h3 style={{ fontSize: "19px", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>Pro Creator</h3>
+                  <Zap size={20} style={{ color: "#38bdf8" }} />
+                </div>
+                <p style={{ color: "var(--text-secondary)", fontSize: "13px", lineHeight: 1.5, margin: "0 0 18px" }}>
+                  For designers, active creators & power users needing unlimited speed.
+                </p>
+                <div style={{ marginBottom: "20px" }}>
+                  <span style={{ fontSize: "32px", fontWeight: 800, color: "var(--text-primary)" }}>
+                    {billingCycle === "yearly" ? "₹159" : "₹199"}
+                  </span>
+                  <span style={{ color: "var(--text-muted)", fontSize: "14px" }}>
+                    / month {billingCycle === "yearly" ? "(billed yearly)" : ""}
+                  </span>
+                </div>
+                <div style={{ height: "1px", background: "var(--border)", marginBottom: "20px" }} />
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {[
+                    "Unlimited fast image generations",
+                    "Ideogram 2.0 3D Typography & text",
+                    "Leonardo studio lens & lighting rigs",
+                    "Priority GPU queue (zero wait)",
+                    "Commercial rights & no watermark",
+                    "Parallel batch generations (4 at once)"
+                  ].map((f, idx) => (
+                    <li key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "var(--text-primary)" }}>
+                      <Check size={15} style={{ color: "#38bdf8", flexShrink: 0 }} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                onClick={onPricingClick}
+                style={{
+                  width: "100%",
+                  marginTop: "28px",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  background: "#38bdf8",
+                  color: "#0f172a",
+                  border: "none",
+                  boxShadow: "0 4px 14px rgba(56, 189, 248, 0.4)",
+                  transition: "all 0.2s"
+                }}
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+
+            {/* Plan 3: Studio Max */}
+            <div style={{
+              background: "var(--bg-secondary)",
+              border: "1px solid var(--border)",
+              borderRadius: "22px",
+              padding: "32px 28px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                  <h3 style={{ fontSize: "19px", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>Studio Max</h3>
+                  <Flame size={20} style={{ color: "#c084fc" }} />
+                </div>
+                <p style={{ color: "var(--text-secondary)", fontSize: "13px", lineHeight: 1.5, margin: "0 0 18px" }}>
+                  For agencies, production teams & commercial brands needing full scale.
+                </p>
+                <div style={{ marginBottom: "20px" }}>
+                  <span style={{ fontSize: "32px", fontWeight: 800, color: "var(--text-primary)" }}>
+                    {billingCycle === "yearly" ? "₹399" : "₹499"}
+                  </span>
+                  <span style={{ color: "var(--text-muted)", fontSize: "14px" }}>
+                    / month {billingCycle === "yearly" ? "(billed yearly)" : ""}
+                  </span>
+                </div>
+                <div style={{ height: "1px", background: "var(--border)", marginBottom: "20px" }} />
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {[
+                    "Everything in Pro included",
+                    "AI Video Studio & Speech Synthesis",
+                    "Runway portrait identity engine",
+                    "Ultra-HD 4K canvas exports",
+                    "Max concurrency priority pipeline",
+                    "24/7 Dedicated VIP creator support"
+                  ].map((f, idx) => (
+                    <li key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "13px", color: "var(--text-secondary)" }}>
+                      <Check size={15} style={{ color: "#c084fc", flexShrink: 0 }} />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                onClick={onPricingClick}
+                style={{
+                  width: "100%",
+                  marginTop: "28px",
+                  padding: "12px",
+                  borderRadius: "12px",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  background: "rgba(192, 132, 252, 0.15)",
+                  color: "#c084fc",
+                  border: "1px solid rgba(192, 132, 252, 0.3)",
+                  transition: "all 0.2s"
+                }}
+              >
+                Upgrade to Studio
+              </button>
+            </div>
+          </div>
+
+          {/* Payment Trust Strip */}
+          <div style={{
+            marginTop: "40px",
+            paddingTop: "24px",
+            borderTop: "1px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: "20px",
+            fontSize: "12px",
+            color: "var(--text-muted)"
+          }}>
+            <span style={{ color: "var(--text-secondary)", fontWeight: 600 }}>Accepted Payments:</span>
+            <span>UPI • Google Pay • PhonePe • Paytm • Credit &amp; Debit Cards • NetBanking</span>
+            <span>•</span>
+            <span>🔒 256-Bit SSL Encrypted • 7-Day Money Back Guarantee</span>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section style={{
         position: "relative", zIndex: 1, textAlign: "center",
@@ -612,7 +959,18 @@ export default function Landing({ onLogin, onSignup, theme, toggleTheme, onPrici
           {/* Column 1: Product */}
           <div style={{ display: "flex", flexDirection: "column", gap: "14px", textAlign: "left" }}>
             <h4 style={{ color: "var(--text-primary)", fontSize: "14px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px" }}>Product</h4>
-            <span onClick={onPricingClick} style={footerLinkStyle} onMouseEnter={footerHover} onMouseLeave={footerLeave}>Pricing</span>
+            <span
+              onClick={() => {
+                const el = document.getElementById("pricing");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+                else onPricingClick();
+              }}
+              style={footerLinkStyle}
+              onMouseEnter={footerHover}
+              onMouseLeave={footerLeave}
+            >
+              Pricing
+            </span>
             <span style={footerLinkStyle} onMouseEnter={footerHover} onMouseLeave={footerLeave}>Art Styles</span>
             <span style={footerLinkStyle} onMouseEnter={footerHover} onMouseLeave={footerLeave}>Explore Feed</span>
             <span style={footerLinkStyle} onMouseEnter={footerHover} onMouseLeave={footerLeave}>Release Notes</span>

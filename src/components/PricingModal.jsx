@@ -19,73 +19,59 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
     {
       name: "Free",
       icon: <Sparkles size={20} className="plan-icon" style={{ color: "var(--text-muted)" }} />,
-      desc: "Perfect for trying out basic creations.",
+      desc: "Everything you need to create amazing AI artwork daily.",
       price: { monthly: 0, yearly: 0 },
-      engine: "Pollinations.AI (Free Engine)",
+      engine: "Chitra Turbo AI (Instant)",
       features: [
-        "Standard image generation speed",
-        "10 generations per day limit",
-        "Community support",
-        "Standard resolution (512x512)",
+        "Instant Sub-2s generation speed",
+        "50 Free creations included",
+        "Full 1024x1024 HD image exports",
+        "All 10+ art styles (Ghibli, Anime, 3D, Real)",
+        "Free 4K Upscaler & BG Cutout tools",
+        "Personal use license",
       ],
       cta: "Current Plan",
       disabled: currentTier === "Free",
-      color: "var(--text-muted)"
-    },
-    {
-      name: "Starter",
-      icon: <Shield size={20} className="plan-icon" style={{ color: "#3b82f6" }} />,
-      desc: "For creators who want high quality at minimal cost.",
-      price: { monthly: 149, yearly: 1199 },
-      engine: "Ideogram v4 (Pro Quality)",
-      features: [
-        "100 high-quality images per month",
-        "Typography & text rendering",
-        "Access to all artistic styles",
-        "Enhanced resolution (768x768)",
-        "Download in PNG & JPG",
-      ],
-      cta: "Upgrade to Starter",
-      disabled: currentTier === "Starter",
-      color: "#3b82f6",
-      badge: "Best Value"
+      color: "var(--text-muted)",
+      badge: "Free Forever"
     },
     {
       name: "Pro",
-      icon: <Zap size={20} className="plan-icon" style={{ color: "#8b5cf6" }} />,
-      desc: "Designed for power users and professional design tasks.",
-      price: { monthly: 299, yearly: 2399 },
-      engine: "Ideogram v4 (Pro Quality)",
+      icon: <Zap size={20} className="plan-icon" style={{ color: "#38bdf8" }} />,
+      desc: "For digital creators, designers & power users.",
+      price: { monthly: 199, yearly: 1899 },
+      engine: "Ideogram v4 & Leonardo Optics",
       features: [
-        "350 high-quality images per month",
-        "Priority generation (2x faster)",
-        "Advanced prompt weight control",
-        "Maximum resolution (1024x1024)",
-        "Commercial usage license",
-        "24/7 Priority support",
+        "Unlimited fast image generations",
+        "Ideogram 2.0 3D Typography & Logos",
+        "Studio lighting & camera lens rigs",
+        "Priority GPU queue — zero waiting",
+        "Commercial license & watermark-free",
+        "Parallel batch generations (4 at once)",
       ],
       cta: "Upgrade to Pro",
       disabled: currentTier === "Pro",
-      color: "#8b5cf6",
-      badge: "Popular"
+      color: "#38bdf8",
+      badge: "Most Popular"
     },
     {
-      name: "Elite",
-      icon: <Flame size={20} className="plan-icon" style={{ color: "#ef4444" }} />,
-      desc: "Unlimited power and ultimate generation capabilities.",
-      price: { monthly: 599, yearly: 4999 },
-      engine: "Ideogram v4 (Pro Quality)",
+      name: "Studio",
+      icon: <Flame size={20} className="plan-icon" style={{ color: "#c084fc" }} />,
+      desc: "For creative agencies, studios & commercial brands.",
+      price: { monthly: 499, yearly: 4799 },
+      engine: "Full Studio Stack + Runway Engine",
       features: [
-        "Unlimited generation credits",
-        "Instant rendering speeds",
-        "Highest resolution & detail parameters",
-        "Early access to beta features & models",
-        "Dedicated account representative",
-        "API access for personal automation",
+        "Everything in Pro included",
+        "AI Video Studio & Speech Synthesis",
+        "Runway portrait identity preservation",
+        "Ultra-HD 4K canvas exports",
+        "Max concurrency priority pipeline",
+        "24/7 Dedicated VIP creator support",
       ],
-      cta: "Upgrade to Elite",
-      disabled: currentTier === "Elite",
-      color: "#ef4444"
+      cta: "Upgrade to Studio",
+      disabled: currentTier === "Studio",
+      color: "#c084fc",
+      badge: "Ultimate Power"
     }
   ];
 
@@ -472,16 +458,26 @@ export default function PricingModal({ isOpen, onClose, currentTier, onSubscribe
           })}
         </div>
 
-        {/* Note / Disclaimer */}
+        {/* Note / Payment Trust Badges */}
         <div style={{
           textAlign: "center",
           marginTop: "20px",
           color: "var(--text-muted)",
-          fontSize: "11px",
+          fontSize: "12px",
           borderTop: "1px solid var(--border)",
           paddingTop: "16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
+          alignItems: "center"
         }}>
-          Prices are inclusive of local taxes where applicable. Ideogram v4 is a premium, state-of-the-art model. Subscriptions help cover developer server & API costs.
+          <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", justifyContent: "center" }}>
+            <span style={{ color: "var(--text-secondary)", fontWeight: 600 }}>Supported Payments:</span>
+            <span>UPI • Google Pay • PhonePe • Paytm • Cards • NetBanking</span>
+          </div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+            🔒 256-Bit SSL Encrypted • Cancel Anytime • 7-Day Money Back Guarantee • Taxes included
+          </div>
         </div>
       </div>
     </div>
